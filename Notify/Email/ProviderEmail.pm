@@ -48,6 +48,7 @@ sub send {
 
     $smtp->data();
     $smtp->datasend("To: $to\n");
+    $smtp->datasend('From: ' . $self->{from} . "\n");
     $smtp->datasend("Subject: $subject\n") if defined $subject;
     $smtp->datasend("\n");
     $smtp->datasend($body);
