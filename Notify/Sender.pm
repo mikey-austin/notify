@@ -67,8 +67,7 @@ sub start {
 
         # Wait for response.
         if(my $message = Notify::Message->from_handle($parent)) {
-            if($message->command eq $message->CMD_DISPATCH)
-            {
+            if($message->command eq $message->CMD_DISPATCH) {
                 foreach my $n (@{$message->body}) {
                     push @{$self->{_queue}}, $n;
                 }
