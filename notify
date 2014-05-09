@@ -86,6 +86,11 @@ On startup, the server forks a dedicated sender process to periodically
 request notifications for sending from the parent process's queue,
 essentially rate-limiting the sending.
 
+=head1 SIGNALS
+
+The notify daemon will catch the HUP signal, reload the configuration
+that the daemon was started with, and restarts the sender processes.
+
 =head1 AUTHOR
 
 Mikey Austin, E<lt>mikey@ayuda.com.auE<gt>

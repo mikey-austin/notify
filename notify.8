@@ -133,7 +133,7 @@
 .\" ========================================================================
 .\"
 .IX Title "NOTIFY 8"
-.TH NOTIFY 8 "2014-05-09" "perl v5.18.2" "Notification Throttling Daemon"
+.TH NOTIFY 8 "2014-05-10" "perl v5.18.2" "Notification Throttling Daemon"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -164,6 +164,10 @@ This program starts a server that listens on a unix socket and accepts
 On startup, the server forks a dedicated sender process to periodically
 request notifications for sending from the parent process's queue,
 essentially rate-limiting the sending.
+.SH "SIGNALS"
+.IX Header "SIGNALS"
+The notify daemon will catch the \s-1HUP\s0 signal, reload the configuration
+that the daemon was started with, and restarts the sender processes.
 .SH "AUTHOR"
 .IX Header "AUTHOR"
 Mikey Austin, <mikey@ayuda.com.au>

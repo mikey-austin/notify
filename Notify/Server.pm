@@ -52,6 +52,7 @@ sub new {
 
     # Load the configuration.
     Notify::Config->new($options->{config}, $class->DEFAULTS);
+
     # Print the configuration file being used.
     Notify::Logger->info('Loading configuration from '
         . Notify::Config->new->{_file});
@@ -153,8 +154,9 @@ sub start {
                             } elsif($message->body =~ /^[1-9](\d{1,2})?$/) {
                                 Notify::Logger->write('Notifications Suspended');
                                 Notify::Config->set('enabled', 0);
-                                $response = $self->new_message($message->CMD_RESPONSE,
-                                                               'OK: notifications suspended for ' . $message->body . ' minutes');
+                                $response = $self->new_message(
+                                    $message->CMD_RESPONSE,
+                                    'OK: notifications suspended for ' . $message->body . ' minutes');
 
                                 # Start the suspend process.
                                 $self->start_suspend($message->body);
@@ -310,9 +312,7 @@ sub start_suspend {
         # In child.
         my $suspend_proc = Notify::Suspend->new($minutes);
 
-        #
-        # Start the sleep loop for the suspend process.
-        #
+        # Start the suspend process.
         $suspend_proc->start;
     } elsif($pid < 0) {
         die Notify::Logger->err('Could not fork suspend process, exiting...');
@@ -348,16 +348,16 @@ sub stop_suspend {
 sub register_signals {
     my $self = shift;
 
-    $SIG{'HUP'} = $SIG{'INT'} = $SIG{'TERM'} = sub {
+    $SIG{'INT'} = $SIG{'TERM'} = sub {
         $self->shutdown;
         exit;
     };
 
     #
-    # Reload the sender process on USR1.
+    # Reload the sender process on HUP.
     #
-    $SIG{'USR1'} = sub {
-        Notify::Logger->write('Received USR1, reloading configuration...');
+    $SIG{'HUP'} = sub {
+        Notify::Logger->write('Received HUP, reloading configuration...');
         Notify::Config->reload($self->{_options}->{config}, $self->DEFAULTS);
 
         # Override any options set via command line.
@@ -365,7 +365,7 @@ sub register_signals {
         Notify::Config->set('pidfile', $self->{_options}->{pidfile});
 
         # The sender will automatically restart.
-        $self->stop_sender('USR1');
+        $self->stop_sender('HUP');
     };
 
     #

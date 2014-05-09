@@ -47,18 +47,19 @@ sub start {
     # These signals are considered abnormal, so return an exit code
     # greater than 0 so the parent knows something went wrong.
     #
-    $SIG{'HUP'} = $SIG{'INT'} = $SIG{'TERM'} = sub { exit(1); };
+    $SIG{'INT'} = $SIG{'TERM'} = sub { exit(1); };
 
     #
     # We use the following signal to indicate an expected reload.
     #
-    $SIG{'USR1'} = sub { exit(0); };
+    $SIG{'HUP'} = sub { exit(0); };
 
     do {
         my $parent = IO::Socket::UNIX->new(
             Peer => Notify::Config->get('socket_path'),
             Type => SOCK_STREAM)
-            or die "Could not contact server via socket " . Notify::Config->get('socket_path');
+            or die "Could not contact server via socket "
+                . Notify::Config->get('socket_path');
 
         # Let the parent know we are ready to send.
         my $message = Notify::Message->new(Notify::Message->CMD_READY);
