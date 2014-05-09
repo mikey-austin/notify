@@ -1,0 +1,18 @@
+enabled: true
+active_provider: "ProviderEsendex"
+providers: {
+  ProviderEsendex: {
+    host: "https://www.esendex.com",
+    path: "/secure/messenger/formpost/SendSMS.aspx",
+    username: "test@example.com",
+    account: "XXX",
+    password: "YYY",
+    origin: "TEST"
+  }
+}
+socket_path: "/var/run/notify/notify.sock"
+pidfile: "/var/run/notify/notify.pid"
+sending_interval: "90"
+logging_facility: "console"
+syslog_options: "cons,pid"
+include: "t/config/l2/"

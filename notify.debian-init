@@ -1,0 +1,63 @@
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides:        notify
+# Required-Start:  $network $remote_fs $syslog
+# Required-Stop:   $network $remote_fs $syslog
+# Default-Start:   2 3 4 5
+# Default-Stop:    0 1 6
+# Short-Description: Start Notify daemon
+### END INIT INFO
+
+PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin
+
+. /lib/lsb/init-functions
+
+NAME=notify
+DAEMON=/usr/local/sbin/$NAME
+PIDFILE=/var/run/$NAME/$NAME.pid
+SOCKET=/var/run/$NAME/$NAME.sock
+
+RUNASUSER=$NAME
+UID=$(getent passwd $RUNASUSER | cut -f 5,4 -d:) || true
+if test "$(uname -s)" = "Linux"; then
+    NOTIFY_OPTS="$NOTIFY_OPTS --user $RUNASUSER --socket $SOCKET --daemon --pidfile $PIDFILE"
+fi
+
+test -f $DAEMON || exit 0
+
+case $1 in
+    start)
+        log_daemon_msg "Starting Notify daemon" "notify"
+        if [ -z "$UID" ]; then
+            log_failure_msg "user \"$RUNASUSER\" does not exist"
+            exit 1
+        fi
+        start-stop-daemon --start --pidfile $PIDFILE -u $RUNASUSER --startas $DAEMON -- $NOTIFY_OPTS
+        status=$?
+        log_end_msg $status
+        ;;
+    stop)
+        log_daemon_msg "Stopping Notify server" "notify"
+        start-stop-daemon --stop --pidfile $PIDFILE
+        log_end_msg $?
+        rm -f $PIDFILE
+        ;;
+    restart)
+        $0 stop && sleep 2 && $0 start
+        ;;
+    reload)
+        log_daemon_msg "Reloading notify configuration" "notify"
+        kill -USR1 `cat $PIDFILE` &>/dev/null
+        log_end_msg $?
+        ;;
+    status)
+        status_of_proc $DAEMON "Notify server"
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart|reload|status}"
+        exit 2
+        ;;
+esac
+
+exit 0

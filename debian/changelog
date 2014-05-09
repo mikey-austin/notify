@@ -1,0 +1,23 @@
+notify (0.1.1-1) UNRELEASED; urgency=low
+
+  * Fixed race condition in the suspend functionality.
+
+ -- Mikey Austin <mikey@jackiemclean.net>  Mon, 05 May 2014 23:30:00 +1000
+
+notify (0.1.0-1) UNRELEASED; urgency=low
+
+  * New upstream release.
+
+ -- Mikey Austin <mikey@jackiemclean.net>  Wed, 01 May 2014 23:30:00 +1000
+
+notify (0.0.2-1) UNRELEASED; urgency=low
+
+  * New upstream release.
+
+ -- Mikey Austin <mikey@jackiemclean.net>  Wed, 23 Apr 2014 12:30:03 +1000
+
+notify (0.0.1-1) UNRELEASED; urgency=low
+
+  * Initial release. (Closes: #XXXXXX)
+
+ -- Mikey Austin <mikey@jackiemclean.net>  Wed, 23 Apr 2014 10:49:03 +1000

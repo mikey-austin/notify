@@ -1,0 +1,31 @@
+#! /bin/sh
+# postinst script for notify
+
+set -e
+
+case "$1" in
+    configure)
+      if ! getent passwd notify 2>&1 >/dev/null; then
+         # the account doesn't exist... time to create it
+         echo "Adding notify system user ..."
+         adduser --quiet --system --group --home /dev/null notify
+         adduser --quiet notify adm
+         chown notify:root /var/run/notify
+      fi
+    ;;
+
+    abort-upgrade|abort-remove|abort-deconfigure)
+
+    ;;
+
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+
+#
+#DEBHELPER#
+#
+
+exit 0

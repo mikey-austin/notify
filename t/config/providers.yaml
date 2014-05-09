@@ -1,0 +1,15 @@
+active_email_providers: [ "ProviderEmail", "ProviderEmail2" ]
+active_sms_providers: [ "ProviderSMS" ]
+providers: {
+  ProviderEmail: {
+    host: "host1",
+  },
+  ProviderSMS: {
+    class: "Notify::SMS::ProviderEsendex",
+    host: "host2",
+  },
+  ProviderEmail2: {
+    class: "Notify::Email::ProviderEmail",
+    host: "host3",
+  },
+}

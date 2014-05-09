@@ -1,0 +1,31 @@
+#! /bin/sh
+# preinst script for notify
+
+set -e
+
+case "$1" in
+    install)
+    ;;
+
+    upgrade)
+        if [ -x "/etc/init.d/notify" ]; then
+            if [ -x "`which invoke-rc.d 2>/dev/null`" ]; then
+                    invoke-rc.d notify stop || exit $?
+            else
+                    /etc/init.d/notify stop || exit $?
+            fi
+         fi
+    ;;
+
+    abort-upgrade)
+    ;;
+
+*)
+    echo "preinst called with unknown argument '$1'" >&2
+    exit 1
+    ;;
+esac
+
+#DEBHELPER#
+
+exit 0

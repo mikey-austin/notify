@@ -1,0 +1,9 @@
+active_provider: "TestProvider"
+sending_interval: "10"
+providers: {
+  TestProvider: {
+    username: "test2@example.com",
+    account: "XXX",
+    password: "YYY"
+  }
+}

@@ -1,0 +1,8 @@
+active_provider: "TestProvider"
+providers: {
+  TestProvider: {
+    username: "test2@example.com",
+    account: "XXX",
+    password: "YYY"
+  }
+}

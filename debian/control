@@ -1,0 +1,15 @@
+Source: notify
+Section: admin
+Priority: optional
+Maintainer: Mikey Austin <mikey@ayuda.com.au>
+DM-Upload-Allowed: yes
+Build-Depends: debhelper (>= 7.0.8)
+Standards-Version: 3.9.2
+Homepage: http://jackiemclean.net
+
+Package: notify
+Architecture: all
+Depends: ${perl:Depends}, ${misc:Depends}, adduser, libjson-perl, liblwp-protocol-https-perl, libyaml-libyaml-perl
+Description: notification throttling daemon
+ The program accepts notifications from a unix socket, and rate-limits the dispatch
+ to an SMS gateway.
