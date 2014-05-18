@@ -18,40 +18,22 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
-package Notify::Suspend;
+package Notify::Client::Console;
 
-use strict;
-use warnings;
-use Notify::Config;
-use Notify::Message;
-use IO::Socket::UNIX;
-use Notify::Logger;
+#
+# Output a response based on the context of this client.
+#
+sub output {
+    my ($self, $response) = @_;
 
-sub new {
-    my ($class, $minutes) = @_;
-    my $self = {
-        _seconds => ($minutes * 60),
-    };
-    bless $self, $class;
-}
-
-sub start {
-    my $self = shift;
-    my $select = IO::Select->new;
-
-    Notify::Logger->write('Notifications disabled for '
-                          . $self->{_seconds} . ' seconds');
-
-    # Clear signals.
-    $SIG{'HUP'} = $SIG{'INT'} = $SIG{'TERM'} = sub { exit(0); };
-
-    sleep($self->{_seconds});
-
-    #
-    # The parent will clean up after a SIGCHLD is received, so just
-    # exit here.
-    #
-    exit(0);
+    if(ref $response->body eq 'HASH') {
+	# Response should be key/value pairs.
+	foreach my $key (keys %{$response->body}) {
+	    print "$key: " . $response->body->{$key} . "\n";
+	}
+    } else {
+	print $response->body, "\n";
+    }
 }
 
 1;

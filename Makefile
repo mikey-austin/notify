@@ -1,6 +1,6 @@
 # Notify makefile for distribution
 
-VERSION = 0.1.1
+VERSION = 0.2.0
 
 bindir = /usr/local/sbin
 sysconfdir = /etc
@@ -57,6 +57,7 @@ install:
 	install -D notify ${DESTDIR}${bindir}/notify
 	install -D notifyctl ${DESTDIR}${bindir}/notifyctl
 	install -D Notify/Client.pm ${DESTDIR}${perllibdir}/Notify/Client.pm
+	install -D Notify/Client/Console.pm ${DESTDIR}${perllibdir}/Notify/Client/Console.pm
 	install -D Notify/Config.pm ${DESTDIR}${perllibdir}/Notify/Config.pm
 	install -D Notify/Logger.pm ${DESTDIR}${perllibdir}/Notify/Logger.pm
 	install -D Notify/Message.pm ${DESTDIR}${perllibdir}/Notify/Message.pm

@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# notify 0.1.1
+# notify 0.2.0
 # Copyright (C) 2014  Mikey Austin <mikey@jackiemclean.net>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -26,7 +26,7 @@ use YAML::XS;
 
 use constant {
     NAME     => 'notify',
-    VERSION  => '0.1.1',
+    VERSION  => '0.2.0',
 };
 
 # Singleton instance.

@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# notify 0.1.1
+# notify 0.2.0
 # Copyright (C) 2014  Mikey Austin <mikey@jackiemclean.net>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -45,7 +45,6 @@ STYLE
 my $res = undef;
 my $options = { config => '/etc/notify/notify.conf' };
 my $client = Notify::Client->new($options);
-$client->{_console} = 0;
 
 if($cgi->request_method eq 'POST') {
     print $cgi->h2('Executing command: ' . $cgi->param('command'));

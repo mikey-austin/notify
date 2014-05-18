@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# notify 0.1.1
+# notify 0.2.0
 # Copyright (C) 2014  Mikey Austin <mikey@jackiemclean.net>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -40,14 +40,10 @@ use constant {
 };
 
 sub new {
-    my ($class, $options, $console) = @_;
-
-    # By default, assume we are on a console and print to stdout.
-    $console ||= 1;
+    my ($class, $options) = @_;
 
     my $self = {
-        _options => {},
-        _console => $console,
+        _options => {}
     };
 
     bless $self, $class;
@@ -189,19 +185,8 @@ sub send {
 sub output {
     my ($self, $response) = @_;
 
-    if($self->{_console}) {
-        if(ref $response->body eq 'HASH') {
-            # Response should be key/value pairs.
-            foreach my $key (keys %{$response->body}) {
-                print "$key: " . $response->body->{$key} . "\n";
-            }
-        } else {
-            print $response->body, "\n";
-        }
-    } else {
-        # Just pass through the response object.
-        return $response;
-    }
+    # Just pass through the response object.
+    return $response;
 }
 
 1;
