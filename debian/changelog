@@ -1,3 +1,9 @@
+notify (0.2.0-1) UNRELEASED; urgency=low
+
+  * New minor improvements to the client API.
+
+ -- Mikey Austin <mikey@jackiemclean.net>  Mon, 18 May 2014 23:30:00 +1000
+
 notify (0.1.1-1) UNRELEASED; urgency=low
 
   * Fixed race condition in the suspend functionality.
