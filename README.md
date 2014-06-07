@@ -25,9 +25,10 @@ Overview
 --------
 
 On server startup, a dedicated "sender" process is forked with the sole purpose of:
-1. Requesting notifications from the server to dispatch (to unique recipients)
-   via the configured providers.
-2. Sleeping for a configured number of seconds after sending any notifications.
+
+1.  Requesting notifications from the server to dispatch (to unique recipients)
+    via the configured providers.
+2.  Sleeping for a configured number of seconds after sending any notifications.
 
 Meanwhile, the server (notify) polls the socket, listening for any new messages to queue,
 control commands to service, and requested messages to dispatch (popped off the queue).
@@ -45,15 +46,15 @@ Usage
 
 The server can be started as below (when not run from an init script):
 
-  $ notify --config sample.conf --socket /tmp/test.sock --pidfile /tmp/test.pid
+    $ notify --config sample.conf --socket /tmp/test.sock --pidfile /tmp/test.pid
 
 and similarly for the client:
 
-  $ notifyctl enable --socket /tmp/test.sock
-  OK: notifications enabled
+    $ notifyctl enable --socket /tmp/test.sock
+    OK: notifications enabled
   
-  $ notifyctl queue --socket /tmp/test.sock --recipient 61411221234 --subject "alert!" --body "alert alert"
-  OK: 1 queued
+    $ notifyctl queue --socket /tmp/test.sock --recipient 61411221234 --subject "alert!" --body "alert alert"
+    OK: 1 queued
 
 Implementation Details
 ----------------------
@@ -67,6 +68,7 @@ Dependencies
 ------------
 
 To run notify you will need to install the following CPAN modules:
+
 - YAML::XS
 - JSON
 - Module::Load
@@ -76,7 +78,8 @@ SMS Gateway Providers
 
 Currently there are two reference provider implementations for email and SMS dispatch. The SMS gateway
 implemented is that of Esendex (no affiliation). To implement another SMS provider, you can:
-1. Implement a package extending the Notify::Provider class, in the Notify::SMS namespace (eg Notify::SMS::NewProvider)
-2. Implement the *send* method according to the provider's specifics
-3. Add the configuration to notify's configuration file
-4. Finally add the provider name to the list of active SMS providers to use
+
+1.  Implement a package extending the Notify::Provider class, in the Notify::SMS namespace (eg Notify::SMS::NewProvider)
+2.  Implement the *send* method according to the provider's specifics
+3.  Add the configuration to notify's configuration file
+4.  Finally add the provider name to the list of active SMS providers to use
