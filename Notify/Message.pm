@@ -49,11 +49,23 @@ sub new {
 }
 
 sub command {
-    shift->{_command};
+    my ($self, $command) = @_;
+
+    if(defined $command) {
+        $self->{_command} = $command;
+    } else {
+        return $self->{_command};
+    }
 }
 
 sub body {
-    shift->{_body};
+    my ($self, $body) = @_;
+
+    if(defined $body) {
+        $self->{_body} = $body;
+    } else {
+        return $self->{_body};
+    }
 }
 
 sub encode {

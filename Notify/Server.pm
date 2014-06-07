@@ -202,10 +202,9 @@ sub new_message {
         # Dispatch notifications to sender if notifications
         # are enabled.
         #
-        $message->{_body} = (Notify::Config->get('enabled') == 1
-                             ? $self->{_queue}->dequeue : []);
+        $message->body((Notify::Config->get('enabled') == 1 ? $self->{_queue}->dequeue : []));
     } elsif($command eq $message->CMD_RESPONSE) {
-        $message->{_body} = $response;
+        $message->body($response);
     }
 
     return $message;

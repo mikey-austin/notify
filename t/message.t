@@ -31,7 +31,7 @@ $body = 'test';
 $subject = 'test subject';
 $r = Notify::RecipientFactory::create('0412341234');
 $n = Notify::Notification->new($r, $body, $subject);
-$message->{_body} = $n;
+$message->body($n);
 
 #
 # Test parsing a message from raw JSON.

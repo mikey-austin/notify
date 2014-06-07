@@ -108,7 +108,7 @@ sub queue {
         $recipient, $body, $subject);
 
     my $message = Notify::Message->new(Notify::Message->CMD_NOTIF);
-    $message->{_body} = $notification;
+    $message->body($notification);
 
     return $self->send($message);
 }
@@ -146,7 +146,7 @@ sub suspend_notifications {
 
     my $message = Notify::Message->new(
         Notify::Message->CMD_SUSPEND);
-    $message->{_body} = $self->{_options}->{minutes};
+    $message->body($self->{_options}->{minutes});
 
     return $self->send($message);
 }
