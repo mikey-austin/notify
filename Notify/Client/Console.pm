@@ -20,6 +20,10 @@
 
 package Notify::Client::Console;
 
+use strict;
+use warnings;
+use base qw(Notify::Client);
+
 #
 # Output a response based on the context of this client.
 #
@@ -27,12 +31,12 @@ sub output {
     my ($self, $response) = @_;
 
     if(ref $response->body eq 'HASH') {
-	# Response should be key/value pairs.
-	foreach my $key (keys %{$response->body}) {
-	    print "$key: " . $response->body->{$key} . "\n";
-	}
+        # Response should be key/value pairs.
+        foreach my $key (keys %{$response->body}) {
+            print "$key: " . $response->body->{$key} . "\n";
+        }
     } else {
-	print $response->body, "\n";
+        print $response->body, "\n";
     }
 }
 
