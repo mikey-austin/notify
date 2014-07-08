@@ -10,7 +10,11 @@ case "$1" in
          echo "Adding notify system user ..."
          adduser --quiet --system --group --home /dev/null notify
          adduser --quiet notify adm
-         chown notify:root /var/run/notify
+      fi
+
+      if [ ! -d /var/lib/notify ]; then
+          mkdir /var/lib/notify
+          chown notify:root /var/lib/notify
       fi
     ;;
 

@@ -6,7 +6,7 @@ bindir = /usr/local/sbin
 sysconfdir = /etc
 docdir = /usr/share/doc/notify
 mandir = /usr/share/man
-libdir = /var/run/notify
+libdir = /var/lib/notify
 perllibdir = /usr/local/lib/site_perl
 
 MAN_SECTION = 8

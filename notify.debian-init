@@ -15,13 +15,16 @@ PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin
 
 NAME=notify
 DAEMON=/usr/local/sbin/$NAME
-PIDFILE=/var/run/$NAME/$NAME.pid
-SOCKET=/var/run/$NAME/$NAME.sock
-
+PIDFILE=/var/run/$NAME.pid
 RUNASUSER=$NAME
+
+if [ -f /etc/default/$NAME ]; then
+    . /etc/default/$NAME
+fi
+
 UID=$(getent passwd $RUNASUSER | cut -f 5,4 -d:) || true
 if test "$(uname -s)" = "Linux"; then
-    NOTIFY_OPTS="$NOTIFY_OPTS --user $RUNASUSER --socket $SOCKET --daemon --pidfile $PIDFILE"
+    NOTIFY_OPTS="$NOTIFY_OPTS --user $RUNASUSER --daemon --pidfile $PIDFILE"
 fi
 
 test -f $DAEMON || exit 0
