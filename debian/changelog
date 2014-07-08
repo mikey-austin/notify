@@ -1,3 +1,9 @@
+notify (0.2.2-1) UNRELEASED; urgency=low
+
+  * Fixed Default PIDFILE path to work with notify user.
+
+ -- Mikey Austin <mikey@jackiemclean.net>  Mon, 08 Jul 2014 14:30:00 +1000
+
 notify (0.2.1-1) UNRELEASED; urgency=low
 
   * Fixed Debian init script so run directory is created on startup.

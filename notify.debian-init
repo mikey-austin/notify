@@ -15,7 +15,7 @@ PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin
 
 NAME=notify
 DAEMON=/usr/local/sbin/$NAME
-PIDFILE=/var/run/$NAME.pid
+PIDFILE=/var/lib/$NAME/$NAME.pid
 RUNASUSER=$NAME
 
 if [ -f /etc/default/$NAME ]; then
