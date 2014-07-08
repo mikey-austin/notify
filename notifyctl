@@ -20,6 +20,7 @@
 use strict;
 use warnings;
 use Notify::Client::Console;
+use Notify::Config;
 use Getopt::Long;
 use Pod::Usage;
 

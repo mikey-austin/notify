@@ -1,8 +1,9 @@
 notify (0.2.0-1) UNRELEASED; urgency=low
 
   * New minor improvements to the client API.
+  * Fixed Debian init script to be more LSB conformant.
 
- -- Mikey Austin <mikey@jackiemclean.net>  Mon, 18 May 2014 23:30:00 +1000
+ -- Mikey Austin <mikey@jackiemclean.net>  Mon, 08 Jul 2014 12:30:00 +1000
 
 notify (0.1.1-1) UNRELEASED; urgency=low
 
