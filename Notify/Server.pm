@@ -1,6 +1,5 @@
 #!/usr/bin/perl
 #
-# notify 0.2.0
 # Copyright (C) 2014  Mikey Austin <mikey@jackiemclean.net>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -382,7 +381,7 @@ sub register_signals {
                 Notify::Config->set('enabled', 1);
 
                 # Unset the pid here as we know it has died for sure.
-                $self->{_suspend_pid} = undef;                
+                $self->{_suspend_pid} = undef;
             } elsif($child == $self->{_sender_pid}) {
                 if($exit_status != 0) {
                     Notify::Logger->err('Sender process died, exiting...');

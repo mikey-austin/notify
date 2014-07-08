@@ -1,6 +1,5 @@
 #!/usr/bin/perl
 #
-# notify 0.2.0
 # Copyright (C) 2014  Mikey Austin <mikey@jackiemclean.net>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -26,7 +25,7 @@ use YAML::XS;
 
 use constant {
     NAME     => 'notify',
-    VERSION  => '0.2.0',
+    VERSION  => '0.2.1',
 };
 
 # Singleton instance.
@@ -95,7 +94,7 @@ sub load_config {
         # Only look for .yaml or .conf files.
         my @listing = grep { (/\.(yaml|conf)$/) } readdir(DIR);
         closedir DIR;
-        
+
         # Merge in each file found.
         foreach my $file (@listing) {
             $sub_config = $class->load_config(
