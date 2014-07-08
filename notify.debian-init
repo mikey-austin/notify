@@ -53,10 +53,11 @@ case $1 in
         ;;
     status)
         status_of_proc $DAEMON "Notify server"
+        exit $?
         ;;
     *)
         echo "Usage: $0 {start|stop|restart|reload|status}"
-        exit 2
+        exit 4
         ;;
 esac
 
