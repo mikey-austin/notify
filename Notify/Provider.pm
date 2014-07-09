@@ -91,8 +91,13 @@ sub get_ua {
     if($self->{host} =~ /^https/) {
         if($self->{ca}) {
             $ua->ssl_opts(
+                verify_hostnames => 1,
                 SSL_ca_file      => $self->{ca},
-                verify_hostnames => 1
+                );
+        } elsif($self->{ca_path}) {
+            $ua->ssl_opts(
+                verify_hostnames => 1,
+                SSL_ca_path      => $self->{ca_path}
                 );
         } else {
             $ua->ssl_opts(verify_hostnames => 0);
