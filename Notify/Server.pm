@@ -27,6 +27,7 @@ use Notify::Queue;
 use Notify::Logger;
 use Notify::Sender;
 use Notify::Suspend;
+use Notify::ProviderFactory;
 use IO::Socket::UNIX;
 use IO::Select;
 use IO::Handle;
@@ -218,6 +219,18 @@ sub server_status {
         sms_providers   => join(', ', @{Notify::Config->get('active_sms_providers')}),
         email_providers => join(', ', @{Notify::Config->get('active_email_providers')}),
     };
+
+    my @sms_providers;
+    foreach my $provider (@{Notify::ProviderFactory->get_sms_providers}) {
+        push @sms_providers, $provider->provider_name;
+    }
+    $status->{sms_providers} = join(', ', @sms_providers);
+
+    my @email_providers;
+    foreach my $provider (@{Notify::ProviderFactory->get_email_providers}) {
+        push @email_providers, $provider->provider_name;
+    }
+    $status->{email_providers} = join(', ', @email_providers);
 
     if(defined $self->{_suspend_pid}) {
         $status->{suspended} = 1;

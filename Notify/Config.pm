@@ -62,6 +62,10 @@ sub new {
         _config => $config
     };
 
+    # Set some defaults if these required variables are not set.
+    $self->{_config}->{active_email_providers} ||= [];
+    $self->{_config}->{active_sms_providers}   ||= [];
+
     return ($instance = bless $self, $class);
 }
 

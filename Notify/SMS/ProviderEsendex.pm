@@ -36,19 +36,19 @@ sub send {
         EsendexPlainText  => "on"
     };
 
-    my $response = $self->make_https_call(
+    my $response = $self->make_post(
         $self->{host} . $self->{path}, $data);
 
     if(defined $response and $response =~ /Result=([a-zA-Z0-9_-]*)/) {
         if($1 =~ /OK/) {
-            Notify::Logger->write('OK returned from gateway');
+            $self->write('OK returned from gateway');
             return 1;
         } else {
-            Notify::Logger->err("ERR: expected OK, received: $response");
+            $self->err("Expected OK, received: $response");
             return 0;
         }
     } else {
-        Notify::Logger->err('ERR: error making HTTPS call to gateway');
+        $self->err('An unknown error occured');
         return 0;
     }
 }

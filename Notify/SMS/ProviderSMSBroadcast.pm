@@ -17,27 +17,38 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
-package Notify::Client::Console;
+package Notify::SMS::ProviderSMSBroadcast;
 
 use strict;
 use warnings;
-use base qw(Notify::Client);
+use base qw(Notify::Provider);
 
-#
-# Output a response based on the context of this client.
-#
-sub output {
-    my ($self, $response) = @_;
+sub send {
+    my ($self, $phone_number, $body, $subject) = @_;
 
-    return if not defined $response;
+    my $data = {
+        username => $self->{username},
+        password => $self->{password},
+        to       => $phone_number,
+        from     => ($subject ? $subject : $self->{origin}),
+        message  => $body,
+    };
 
-    if(ref $response->body eq 'HASH') {
-        # Response should be key/value pairs.
-        foreach my $key (keys %{$response->body}) {
-            print "$key: " . $response->body->{$key} . "\n";
+    my $response = $self->make_post(
+        $self->{host} . $self->{path}, $data);
+
+    if(defined $response and $response =~ /^(OK|BAD):(.+):(.+)$/) {
+        if($1 =~ /OK/) {
+            $self->write('OK returned from gateway');
+            return 1;
+        } else {
+            $self->err("Expected OK, received BAD: $3");
+            return 0;
         }
     } else {
-        print $response->body, "\n";
+        $self->err('An unknown error occured'
+                   . (defined $response ? ": $response" : ''));
+        return 0;
     }
 }
 

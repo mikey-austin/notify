@@ -55,7 +55,7 @@ sub send {
         };
 
         if($@ || !$sent) {
-            Notify::Logger->err('Error sending via ' . ref $provider);
+            $provider->err("sending failed, giving up on provider");
         } elsif($sent) {
             last;
         }
