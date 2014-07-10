@@ -29,23 +29,23 @@ use base qw(Notify::Provider);
 sub send {
     my ($self, $phone_number, $body, $subject) = @_;
 
-    my $ua = $self->get_ua;
-    my $request = HTTP::Request->new('POST', $self->{host} . $self->{path});
-
     # Set the credentials.
-    $request->authorization_basic($self->{username}, $self->{password});
-
     my $data = {
         to      => $phone_number,
         from    => ($subject ? $subject : $self->{origin}),
         message => $body,
     };
 
-    $request->content($data);
+    my $ua = $self->get_ua;
+    my $request = HTTP::Request->new(POST => $self->{host} . $self->{path});
+    $request->authorization_basic($self->{username}, $self->{password});
 
     # This should return JSON data.
-    my $response = $self->process_response($ua->request($request));
-    my $decoded;
+    my $response = $self->process_response($ua->request($request, $data));
+    my $decoded = undef;
+
+    # Just return if response is undefined.
+    return 0 if not defined $response;
 
     eval {
         $decoded = JSON->new->decode($response);
