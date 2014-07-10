@@ -37,7 +37,7 @@ sub send {
     };
 
     my $ua = $self->get_ua;
-    my $request = HTTP::Request::POST($self->{host} . $self->{path}, $data);
+    my $request = HTTP::Request::Common::POST($self->{host} . $self->{path}, $data);
     $request->authorization_basic($self->{username}, $self->{password});
 
     # This should return JSON data.
