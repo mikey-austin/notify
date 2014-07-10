@@ -43,6 +43,7 @@ sub send {
     # This should return JSON data.
     my $response = $ua->request($request, $data);
     my $content = $response->decoded_content;
+    my $decoded = undef;
 
     eval {
         $decoded = JSON->new->decode($content);
