@@ -22,7 +22,7 @@ package Notify::SMS::ProviderBurstSMS;
 use strict;
 use warnings;
 
-use HTTP::Request;
+use HTTP::Request::Common;
 use JSON;
 use base qw(Notify::Provider);
 
@@ -37,12 +37,12 @@ sub send {
     };
 
     my $ua = $self->get_ua;
-    my $request = HTTP::Request->new(POST => $self->{host} . $self->{path});
+    my $request = HTTP::Request::POST($self->{host} . $self->{path}, $data);
     $request->authorization_basic($self->{username}, $self->{password});
 
     # This should return JSON data.
-    my $response = $self->process_response($ua->request($request, $data));
-    my $decoded = undef;
+    my $response = $ua->request($request, $data);
+    my $decoded = $response->decoded_content;
 
     # Just return if response is undefined.
     return 0 if not defined $response;
@@ -56,7 +56,7 @@ sub send {
         return 0;
     }
 
-    if($decoded->{recipients} == 1 and not defined $decoded->{fails}) {
+    if($decoded->{error}->{code} eq 'SUCCESS') {
         $self->write('Message sent successfully');
         return 1;
     } else {
