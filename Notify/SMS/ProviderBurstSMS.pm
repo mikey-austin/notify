@@ -42,13 +42,10 @@ sub send {
 
     # This should return JSON data.
     my $response = $ua->request($request, $data);
-    my $decoded = $response->decoded_content;
-
-    # Just return if response is undefined.
-    return 0 if not defined $response;
+    my $content = $response->decoded_content;
 
     eval {
-        $decoded = JSON->new->decode($response);
+        $decoded = JSON->new->decode($content);
     };
 
     if($@) {
@@ -60,8 +57,7 @@ sub send {
         $self->write('Message sent successfully');
         return 1;
     } else {
-        # Dump the raw JSON.
-        $self->err(JSON->new->encode($decoded));
+        $self->err($content);
         return 0;
     }
 }
