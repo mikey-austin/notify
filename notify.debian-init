@@ -51,7 +51,7 @@ case $1 in
         ;;
     reload)
         log_daemon_msg "Reloading notify configuration" "notify"
-        kill -USR1 `cat $PIDFILE` &>/dev/null
+        kill -HUP `cat $PIDFILE` &>/dev/null
         log_end_msg $?
         ;;
     status)

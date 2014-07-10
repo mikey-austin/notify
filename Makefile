@@ -68,6 +68,9 @@ install:
 	install -D Notify/Recipient.pm ${DESTDIR}${perllibdir}/Notify/Recipient.pm
 	install -D Notify/RecipientFactory.pm ${DESTDIR}${perllibdir}/Notify/RecipientFactory.pm
 	install -D Notify/SMS/ProviderEsendex.pm ${DESTDIR}${perllibdir}/Notify/SMS/ProviderEsendex.pm
+	install -D Notify/SMS/ProviderBurstSMS.pm ${DESTDIR}${perllibdir}/Notify/SMS/ProviderBurstSMS.pm
+	install -D Notify/SMS/ProviderSMSBroadcast.pm ${DESTDIR}${perllibdir}/Notify/SMS/ProviderSMSBroadcast.pm
+	install -D Notify/SMS/ProviderSMSGlobal.pm ${DESTDIR}${perllibdir}/Notify/SMS/ProviderSMSGlobal.pm
 	install -D Notify/SMS/Recipient.pm ${DESTDIR}${perllibdir}/Notify/SMS/Recipient.pm
 	install -D Notify/Email/Recipient.pm ${DESTDIR}${perllibdir}/Notify/Email/Recipient.pm
 	install -D Notify/Email/ProviderEmail.pm ${DESTDIR}${perllibdir}/Notify/Email/ProviderEmail.pm

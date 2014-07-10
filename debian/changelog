@@ -4,6 +4,7 @@ notify (0.3.0-1) UNRELEASED; urgency=low
   * New SMS providers (Burst SMS, SMS Global, SMS Broadcast)
   * New refactored Provider base class for easier provider dev
   * New support for SSL hostname verifaction via ca or ca_cert options
+  * Fixed reload in Debian init.d script
 
  -- Mikey Austin <mikey@jackiemclean.net>  Mon, 08 Jul 2014 14:30:00 +1000
 
