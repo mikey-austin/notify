@@ -216,8 +216,6 @@ sub server_status {
         queued          => $self->{_queue}->get_size,
         enabled         => Notify::Config->get('enabled'),
         interval        => Notify::Config->get('sending_interval'),
-        sms_providers   => join(', ', @{Notify::Config->get('active_sms_providers')}),
-        email_providers => join(', ', @{Notify::Config->get('active_email_providers')}),
     };
 
     my @sms_providers;
