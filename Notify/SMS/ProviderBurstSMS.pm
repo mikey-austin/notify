@@ -41,7 +41,7 @@ sub send {
     $request->authorization_basic($self->{username}, $self->{password});
 
     # This should return JSON data.
-    my $response = $ua->request($request, $data);
+    my $response = $ua->request($request);
     my $content = $response->decoded_content;
     my $decoded = undef;
 
