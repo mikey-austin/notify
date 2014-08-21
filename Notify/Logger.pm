@@ -45,7 +45,9 @@ sub write {
 
     $priority ||= 'warning';
 
-    if(Notify::Config->get('logging_facility') eq 'syslog') {
+    if(defined Notify::Config->get('logging_facility')
+       and Notify::Config->get('logging_facility') eq 'syslog')
+    {
         # Setup syslog.
         openlog(Notify::Config->get('name'), Notify::Config->get('syslog_options'), 'user');
         syslog($priority, '%s', $message);

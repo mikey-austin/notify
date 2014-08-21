@@ -25,7 +25,7 @@ use YAML::XS;
 
 use constant {
     NAME     => 'notify',
-    VERSION  => '0.3.0',
+    VERSION  => '0.4.0',
 };
 
 # Singleton instance.

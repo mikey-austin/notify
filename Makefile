@@ -1,6 +1,6 @@
 # Notify makefile for distribution
 
-VERSION = 0.3.0
+VERSION = 0.4.0
 
 bindir = /usr/local/sbin
 sysconfdir = /etc
@@ -71,6 +71,7 @@ install:
 	install -D Notify/SMS/ProviderBurstSMS.pm ${DESTDIR}${perllibdir}/Notify/SMS/ProviderBurstSMS.pm
 	install -D Notify/SMS/ProviderSMSBroadcast.pm ${DESTDIR}${perllibdir}/Notify/SMS/ProviderSMSBroadcast.pm
 	install -D Notify/SMS/ProviderSMSGlobal.pm ${DESTDIR}${perllibdir}/Notify/SMS/ProviderSMSGlobal.pm
+	install -D Notify/SMS/ProviderTwilio.pm ${DESTDIR}${perllibdir}/Notify/SMS/ProviderTwilio.pm
 	install -D Notify/SMS/Recipient.pm ${DESTDIR}${perllibdir}/Notify/SMS/Recipient.pm
 	install -D Notify/Email/Recipient.pm ${DESTDIR}${perllibdir}/Notify/Email/Recipient.pm
 	install -D Notify/Email/ProviderEmail.pm ${DESTDIR}${perllibdir}/Notify/Email/ProviderEmail.pm
