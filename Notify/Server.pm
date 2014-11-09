@@ -105,7 +105,7 @@ sub start {
                           . Notify::Config->get('socket_path'));
 
     # Start monitoring file descriptors.
-    do {
+    for(;;) {
         while(my @ready = $select->can_read) {
             foreach my $handle (@ready) {
                 if($handle == $listen) {
@@ -114,7 +114,8 @@ sub start {
 
                     # Now add the accepted file handle to the monitored list.
                     $select->add($new);
-                } else {
+                }
+                else {
                     #
                     # This is a connection ready for reading.
                     #
@@ -128,16 +129,19 @@ sub start {
                                 'OK: ' . $self->{_queue}->get_size . ' queued');
 
                             Notify::Logger->write('Queued notification');
-                        } elsif($message->command eq $message->CMD_READY) {
+                        }
+                        elsif($message->command eq $message->CMD_READY) {
                             $response = $self->new_message(
                                 $message->CMD_DISPATCH);
-                        } elsif($message->command eq $message->CMD_EMPTY_QUEUE) {
+                        }
+                        elsif($message->command eq $message->CMD_EMPTY_QUEUE) {
                             Notify::Logger->write('Queue Emptied');
                             $self->{_queue}->empty;
 
                             $response = $self->new_message(
                                 $message->CMD_RESPONSE, 'OK: queue emptied');
-                        } elsif($message->command eq $message->CMD_ENABLE_NOTIF) {
+                        }
+                        elsif($message->command eq $message->CMD_ENABLE_NOTIF) {
                             Notify::Logger->write('Notifications Enabled');
                             Notify::Config->set('enabled', 1);
 
@@ -146,12 +150,14 @@ sub start {
                                 'OK: notifications enabled');
 
                             $self->stop_suspend;
-                        } elsif($message->command eq $message->CMD_SUSPEND) {
+                        }
+                        elsif($message->command eq $message->CMD_SUSPEND) {
                             if(defined $self->{_suspend_pid}) {
                                 $response = $self->new_message($message->CMD_RESPONSE,
                                                                'ERR: Already suspended');
                                 $response->{_error} = 1;
-                            } elsif($message->body =~ /^[1-9](\d{1,2})?$/) {
+                            }
+                            elsif($message->body =~ /^[1-9](\d{1,2})?$/) {
                                 Notify::Logger->write('Notifications Suspended');
                                 Notify::Config->set('enabled', 0);
                                 $response = $self->new_message(
@@ -160,22 +166,26 @@ sub start {
 
                                 # Start the suspend process.
                                 $self->start_suspend($message->body);
-                            } else {
+                            }
+                            else {
                                 $response = $self->new_message($message->CMD_RESPONSE,
                                                                'ERR: Invalid suspend time');
                                 $response->{_error} = 1;
                             }
-                        } elsif($message->command eq $message->CMD_DISABLE_NOTIF) {
+                        }
+                        elsif($message->command eq $message->CMD_DISABLE_NOTIF) {
                             Notify::Logger->write('Notifications Disabled');
                             Notify::Config->set('enabled', 0);
 
                             $response = $self->new_message(
                                 $message->CMD_RESPONSE,
                                 'OK: notifications disabled');
-                        } elsif($message->command eq $message->CMD_STATUS) {
+                        }
+                        elsif($message->command eq $message->CMD_STATUS) {
                             $response = $self->new_message(
                                 $message->CMD_RESPONSE, $self->server_status);
-                        } else {
+                        }
+                        else {
                             Notify::Logger->err("Could not understand message");
                             $response = $self->new_message(
                                 $message->CMD_RESPONSE, 'ERR: invalid message');
@@ -190,7 +200,9 @@ sub start {
                 }
             }
         }
-    } while(1); # Never return.
+    }
+
+    # Never reached.
 }
 
 sub new_message {
@@ -203,7 +215,8 @@ sub new_message {
         # are enabled.
         #
         $message->body((Notify::Config->get('enabled') == 1 ? $self->{_queue}->dequeue : []));
-    } elsif($command eq $message->CMD_RESPONSE) {
+    }
+    elsif($command eq $message->CMD_RESPONSE) {
         $message->body($response);
     }
 
@@ -213,9 +226,9 @@ sub new_message {
 sub server_status {
     my $self = shift;
     my $status = {
-        queued          => $self->{_queue}->get_size,
-        enabled         => Notify::Config->get('enabled'),
-        interval        => Notify::Config->get('sending_interval'),
+        queued   => $self->{_queue}->get_size,
+        enabled  => Notify::Config->get('enabled'),
+        interval => Notify::Config->get('sending_interval'),
     };
 
     my @sms_providers;
@@ -263,7 +276,8 @@ sub daemonize {
     my $pid = fork();
     if($pid < 0) {
         die Notify::Logger->err("Could not fork: $!");
-    } elsif($pid) {
+    }
+    elsif($pid) {
         exit;
     }
 
@@ -306,9 +320,11 @@ sub start_sender {
 
         # Start the sleep loop for the sender process.
         $sender_proc->start;
-    } elsif($pid < 0) {
+    }
+    elsif($pid < 0) {
         die Notify::Logger->err('Could not fork sender process, exiting...');
-    } else {
+    }
+    else {
         $self->{_sender_pid} = $pid;
     }
 }
@@ -323,9 +339,11 @@ sub start_suspend {
 
         # Start the suspend process.
         $suspend_proc->start;
-    } elsif($pid < 0) {
+    }
+    elsif($pid < 0) {
         die Notify::Logger->err('Could not fork suspend process, exiting...');
-    } else {
+    }
+    else {
         $self->{_suspend_pid} = $pid;
     }
 }
@@ -393,12 +411,14 @@ sub register_signals {
 
                 # Unset the pid here as we know it has died for sure.
                 $self->{_suspend_pid} = undef;
-            } elsif($child == $self->{_sender_pid}) {
+            }
+            elsif($child == $self->{_sender_pid}) {
                 if($exit_status != 0) {
                     Notify::Logger->err('Sender process died, exiting...');
                     $self->shutdown;
                     exit(1);
-                } else {
+                }
+                else {
                     Notify::Logger->err('Sender process restarting...');
                     $self->start_sender;
                 }
