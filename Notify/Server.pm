@@ -193,7 +193,7 @@ sub start {
                         }
                         elsif($message->command eq $message->CMD_REMOVE) {
                             $response = $self->new_message(
-                                $message->CMD_RESPONSE, $self->remove);
+                                $message->CMD_RESPONSE, $self->remove($message->body));
                         }
                         else {
                             Notify::Logger->err("Could not understand message");
@@ -276,9 +276,30 @@ sub list_queued {
 }
 
 sub remove {
-    my $self = shift;
+    my ($self, $body) = @_;
+    my $counter = 0;
+    my $message = "";
 
-    my $message = "Hello World!";
+    $message .= keys $body;
+
+    if (defined $self->{_options}->{label}) {
+        $self->{_queue}->delete(sub {
+            my $notification = shift;
+            my $bool = 0;
+
+            # $message .= $notification->{_recipient}->{label} . ": " . $self->{_options}->{label} . "\n";
+            $message .= $self->{_options}->{label} . "\n";
+            
+            if ($notification->{_recipient}->{label} eq $self->{_options}->{label}) {
+                $bool = 1;
+                $counter++;
+            }
+
+            return $bool;
+        });
+    }
+
+    # my $message = $counter . " notifications matched.";
 
     return $message;
 }

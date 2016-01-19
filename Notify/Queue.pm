@@ -75,6 +75,21 @@ sub walk_queue {
     }
 }
 
+# Deletes notifications matching the passed subroutine ie subroutine returns true.
+sub delete {
+    my ($self, $sub) = @_;
+
+    # TODO use map.
+    foreach my $id (keys %{$self->{_notifications}}) {
+        for my $i (0 .. $#{$self->{_notifications}->{$id}}) { 
+            if ($sub->($@{$self->{_notifications}->{$id}}[$i])) { 
+
+            }
+        }
+    }
+}
+
+
 sub empty {
     my $self = shift;
     $self->{_notifications} = {};

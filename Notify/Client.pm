@@ -177,12 +177,20 @@ sub list_notifications {
 sub remove {
     my $self = shift;
 
+    my $label   = $self->{_options}->{label};
+    my $body    = $self->{_options}->{body};
+    my $subject = $self->{_options}->{subject};
+
     die "One or more of the --label, --subject and --body options is required\n"
         if not defined $self->{_options}->{label}
             and not defined $self->{_options}->{subject}
             and not defined $self->{_options}->{body};
 
+    my $notification = Notify::Notification->new(
+        $label, $body, $subject);
+
     my $message = Notify::Message->new(Notify::Message->CMD_REMOVE);
+    $message->body($notification);
 
     return $self->send($message);
 } 
