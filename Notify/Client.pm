@@ -82,6 +82,7 @@ sub execute {
         /empty/     and do { $res = $self->empty_queue; last; };
         /suspend/   and do { $res = $self->suspend_notifications; last; };
         /list/      and do { $res = $self->list_notifications; last; };
+        /remove/    and do { $res = $self->remove; last; };
 
         die "Unknown command $_\n";
     }
@@ -168,6 +169,24 @@ sub list_notifications {
 
     return $self->send($message);
 } 
+
+#
+# Remove notifications in the queue. Matches commands on one or more of the --label,
+# --subject and --body options.
+#
+sub remove {
+    my $self = shift;
+
+    die "One or more of the --label, --subject and --body options is required\n"
+        if not defined $self->{_options}->{label}
+            and not defined $self->{_options}->{subject}
+            and not defined $self->{_options}->{body};
+
+    my $message = Notify::Message->new(Notify::Message->CMD_REMOVE);
+
+    return $self->send($message);
+} 
+
 
 #
 # Send off a message to the server, and return the response

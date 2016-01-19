@@ -114,7 +114,7 @@ print version and exit
 
 =head2 Commands:
 
-queue, status, empty, enable, disable, suspend, list
+queue, status, empty, enable, disable, suspend, list, remove
 
 =head1 DESCRIPTION
 

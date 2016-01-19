@@ -25,7 +25,9 @@ use Notify::Config;
 use Notify::Message;
 use Notify::Queue;
 use Notify::Logger;
+use Notify::Notification;
 use Notify::Sender;
+use Notify::Server;
 use Notify::Suspend;
 use Notify::ProviderFactory;
 use IO::Socket::UNIX;
@@ -187,13 +189,11 @@ sub start {
                         }
                         elsif($message->command eq $message->CMD_LIST) {
                             $response = $self->new_message(
-                                $message->CMD_RESPONSE,
-                                $self->list_queued);
+                                $message->CMD_RESPONSE, $self->list_queued);
                         }
-                        elsif($message->command eq $message->CMD_REMOVE_RECIP) {
+                        elsif($message->command eq $message->CMD_REMOVE) {
                             $response = $self->new_message(
-                                $message->CMD_RESPONSE,
-                                $self->remove_recipient($message));
+                                $message->CMD_RESPONSE, $self->remove);
                         }
                         else {
                             Notify::Logger->err("Could not understand message");
@@ -262,26 +262,23 @@ sub server_status {
 
 sub list_queued {
     my $self = shift;
+    my $messages = {
+    };
 
-    # Only returned if queue is empty - foreach loop never entered.
-    my $message = "";
-
-    foreach my $notification (@{$self->{_queue}->copy_queue}) {
-        $message .= %$notification{_recipient}->get_label."|";
-        $message .= %$notification{_subject}."|";
-        $message .= %$notification{_body}."\n";
-    }
-
-    # Chop the last new line character.
-    chop $message;
-
-    return $message;
+    # Anononymous sub is mapped over all notifications in queue.
+    $self->{_queue}->walk_queue(sub {
+        my $notification = shift;
+        $messages->{$notification->{_recipient}->{_label}} =
+            $notification->{_subject} . "|" . $notification->{_body};
+    });
+        
+    return $messages;
 }
 
-sub remove_recipient {
-    my ($self, $recipient) = @_;
+sub remove {
+    my $self = shift;
 
-    my $message = $recipient;
+    my $message = "Hello World!";
 
     return $message;
 }

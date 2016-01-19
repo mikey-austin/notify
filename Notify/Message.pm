@@ -35,7 +35,7 @@ use constant {
     CMD_RESPONSE      => 'RESPONSE',
     CMD_SUSPEND       => 'SUSPEND',
     CMD_LIST          => 'LIST',
-    CMD_REMOVE_RECIP  => 'REMOVE_RECIPIENT',
+    CMD_REMOVE        => 'REMOVE',
 };
 
 sub new {
