@@ -169,7 +169,6 @@ sub list_notifications {
     return $self->send($message);
 } 
 
-
 #
 # Send off a message to the server, and return the response
 # message.

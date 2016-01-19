@@ -156,6 +156,11 @@ Temporarily disable the sending of notifications for a specified number of minut
 
 List the queued notifications.
 
+=item C<remove>
+
+Remove notifications in the queue. Matches commands on one or more of the --label,
+--subject and --body options.
+
 =back
 
 =head1 AUTHOR

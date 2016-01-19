@@ -186,11 +186,14 @@ sub start {
                                 $message->CMD_RESPONSE, $self->server_status);
                         }
                         elsif($message->command eq $message->CMD_LIST) {
-
                             $response = $self->new_message(
                                 $message->CMD_RESPONSE,
                                 $self->list_queued);
-                        
+                        }
+                        elsif($message->command eq $message->CMD_REMOVE_RECIP) {
+                            $response = $self->new_message(
+                                $message->CMD_RESPONSE,
+                                $self->remove_recipient($message));
                         }
                         else {
                             Notify::Logger->err("Could not understand message");
@@ -271,6 +274,14 @@ sub list_queued {
 
     # Chop the last new line character.
     chop $message;
+
+    return $message;
+}
+
+sub remove_recipient {
+    my ($self, $recipient) = @_;
+
+    my $message = $recipient;
 
     return $message;
 }
