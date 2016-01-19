@@ -63,6 +63,21 @@ sub dequeue {
     return \@popped;
 }
 
+# Return an array of notifications copied from each recipient queue.
+# Does not destroy queue.
+sub copy_queue {
+    my $self = shift;
+    my @popped;
+
+    foreach my $id (keys %{$self->{_notifications}}) {
+        my @copy = (@{$self->{_notifications}->{$id}});
+        my $n = pop @copy;
+        push @popped, $n if defined $n;
+    }
+
+    return \@popped;
+}
+
 sub empty {
     my $self = shift;
     $self->{_notifications} = {};

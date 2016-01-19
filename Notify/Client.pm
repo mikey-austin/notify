@@ -81,6 +81,7 @@ sub execute {
         /disabled?/ and do { $res = $self->disable_notifications; last; };
         /empty/     and do { $res = $self->empty_queue; last; };
         /suspend/   and do { $res = $self->suspend_notifications; last; };
+        /list/      and do { $res = $self->list_notifications; last; };
 
         die "Unknown command $_\n";
     }
@@ -156,6 +157,18 @@ sub get_status {
 
     return $self->send($message);
 }
+
+#
+# List all the queued notifications.
+# Uses dummy providers.
+#
+sub list_notifications {
+    my $self = shift;
+    my $message = Notify::Message->new(Notify::Message->CMD_LIST);
+
+    return $self->send($message);
+} 
+
 
 #
 # Send off a message to the server, and return the response

@@ -114,7 +114,7 @@ print version and exit
 
 =head2 Commands:
 
-queue, status, empty, enable, disable, suspend
+queue, status, empty, enable, disable, suspend, list
 
 =head1 DESCRIPTION
 
@@ -151,6 +151,10 @@ Disable the dispatch of notifications on the daemon.
 =item C<suspend>
 
 Temporarily disable the sending of notifications for a specified number of minutes. This command requires the --minutes option.
+
+=item C<list>
+
+List the queued notifications.
 
 =back
 

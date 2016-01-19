@@ -185,6 +185,13 @@ sub start {
                             $response = $self->new_message(
                                 $message->CMD_RESPONSE, $self->server_status);
                         }
+                        elsif($message->command eq $message->CMD_LIST) {
+
+                            $response = $self->new_message(
+                                $message->CMD_RESPONSE,
+                                $self->list_queued);
+                        
+                        }
                         else {
                             Notify::Logger->err("Could not understand message");
                             $response = $self->new_message(
@@ -248,6 +255,24 @@ sub server_status {
     }
 
     return $status;
+}
+
+sub list_queued {
+    my $self = shift;
+
+    # Only returned if queue is empty - foreach loop never entered.
+    my $message = "";
+
+    foreach my $notification (@{$self->{_queue}->copy_queue}) {
+        $message .= %$notification{_recipient}->get_label."|";
+        $message .= %$notification{_subject}."|";
+        $message .= %$notification{_body}."\n";
+    }
+
+    # Chop the last new line character.
+    chop $message;
+
+    return $message;
 }
 
 sub daemonize {

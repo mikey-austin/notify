@@ -34,6 +34,7 @@ use constant {
     CMD_DISPATCH      => 'DISPATCH',
     CMD_RESPONSE      => 'RESPONSE',
     CMD_SUSPEND       => 'SUSPEND',
+    CMD_LIST          => 'LIST',
 };
 
 sub new {
