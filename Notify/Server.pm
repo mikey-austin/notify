@@ -262,46 +262,23 @@ sub server_status {
 
 sub list_queued {
     my $self = shift;
-    my $messages = {
-    };
+    my @messages;
 
-    # Anononymous sub is mapped over all notifications in queue.
     $self->{_queue}->walk_queue(sub {
-        my $notification = shift;
-        $messages->{$notification->{_recipient}->{_label}} =
-            $notification->{_subject} . "|" . $notification->{_body};
+        push @messages, shift; 
     });
-        
-    return $messages;
+
+    return \@messages;
 }
 
 sub remove {
-    my ($self, $body) = @_;
-    my $counter = 0;
-    my $message = "";
+    my ($self, $notification) = @_;
 
-    $message .= keys $body;
+    my $processed = $self->{_queue}->delete(sub {
+        shift->matches($notification);
+    });
 
-    if (defined $self->{_options}->{label}) {
-        $self->{_queue}->delete(sub {
-            my $notification = shift;
-            my $bool = 0;
-
-            # $message .= $notification->{_recipient}->{label} . ": " . $self->{_options}->{label} . "\n";
-            $message .= $self->{_options}->{label} . "\n";
-            
-            if ($notification->{_recipient}->{label} eq $self->{_options}->{label}) {
-                $bool = 1;
-                $counter++;
-            }
-
-            return $bool;
-        });
-    }
-
-    # my $message = $counter . " notifications matched.";
-
-    return $message;
+    return "$processed notifications matched.";
 }
 
 sub daemonize {

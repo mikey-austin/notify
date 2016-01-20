@@ -67,28 +67,31 @@ sub dequeue {
 sub walk_queue {
     my ($self, $sub) = @_;
 
-    # TODO use map.
-    foreach my $id (keys %{$self->{_notifications}}) {
-        foreach my $notification (@{$self->{_notifications}->{$id}}) { 
-            $sub->($notification);
-        }
-    }
+    map { $sub->($_) } @{$self->{_notifications}->{$_}}
+        for keys %{$self->{_notifications}};
 }
 
 # Deletes notifications matching the passed subroutine ie subroutine returns true.
 sub delete {
     my ($self, $sub) = @_;
-
-    # TODO use map.
+    my $counter = 0;
+    
     foreach my $id (keys %{$self->{_notifications}}) {
-        for my $i (0 .. $#{$self->{_notifications}->{$id}}) { 
-            if ($sub->($@{$self->{_notifications}->{$id}}[$i])) { 
+        my @indexes;
 
+        for my $i (0 .. $#{$self->{_notifications}->{$id}}) { 
+            if($sub->(@{$self->{_notifications}->{$id}}[$i])) { 
+                push @indexes, $i;
             }
         }
-    }
-}
+        splice @{$self->{_notifications}->{$id}}, $_, 1
+            for @indexes;
 
+        $counter += @indexes;
+    }
+
+    return $counter;
+}
 
 sub empty {
     my $self = shift;

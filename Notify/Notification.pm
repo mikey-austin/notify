@@ -78,4 +78,22 @@ sub TO_JSON {
     return $output;
 }
 
+sub matches {
+    my ($self, $other) = @_;
+   
+    my $criteria = {
+        "_label"    => $self->{_recipient}->{_label},
+        "_subject"  => $self->{_subject},
+        "_body"     => $self->{_body},
+    };
+
+    foreach my $key (keys %$criteria) {
+        return 0
+            if(defined $other->{$key}
+                && $criteria->{$key} ne $other->{$key});
+    }
+
+    return 1; 
+}
+
 1;
