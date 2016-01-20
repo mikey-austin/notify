@@ -77,17 +77,18 @@ sub delete {
     my $counter = 0;
     
     foreach my $id (keys %{$self->{_notifications}}) {
-        my @indexes;
+        my @indices;
 
+        # filter
         for my $i (0 .. $#{$self->{_notifications}->{$id}}) { 
             if($sub->(@{$self->{_notifications}->{$id}}[$i])) { 
-                push @indexes, $i;
+                push @indices, $i;
             }
         }
         splice @{$self->{_notifications}->{$id}}, $_, 1
-            for @indexes;
+            for @indices;
 
-        $counter += @indexes;
+        $counter += @indices;
     }
 
     return $counter;

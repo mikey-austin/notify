@@ -96,11 +96,26 @@ sub start {
     # Set the various signal handlers after the sender has been forked.
     $self->register_signals;
 
-    my $listen = new IO::Socket::UNIX(
-        Listen => 5,
-        Type   => SOCK_STREAM,
-        Local  => Notify::Config->get('socket_path')
-    );
+    #
+    my $listen;
+
+    if(Notify::Config->get('socket_type') eq 'UNIX') {
+        my $listen = new IO::Socket::UNIX(
+            Listen => 5,
+            Type   => SOCK_STREAM,
+            Local  => Notify::Config->get('socket_path')
+        );
+
+    } elsif(Notify::Config->get('socket_type') eq 'INET') {
+        my $listen = new IO::Socket::INET(
+            Listen      => 5,
+            Type        => SOCK_STREAM,
+            Proto       => 'tcp',
+            LocalAddr   => Notify::Config->get('local_addr'),
+            LocalPort   => Notify::Config->get('local_port'),
+        );
+    }
+
     $select->add($listen);
 
     Notify::Logger->write("Started notify, listening at "

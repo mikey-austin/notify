@@ -54,11 +54,22 @@ sub start {
     $SIG{'HUP'} = sub { exit(0); };
 
     do {
-        my $parent = IO::Socket::UNIX->new(
-            Peer => Notify::Config->get('socket_path'),
-            Type => SOCK_STREAM)
-            or die "Could not contact server via socket "
-                . Notify::Config->get('socket_path');
+        my $parent;
+
+        if(Notify::Config->get('socket_type') eq 'UNIX') {
+            $parent = IO::Socket::UNIX->new(
+                Peer => Notify::Config->get('socket_path'),
+                Type => SOCK_STREAM)
+                or die "Could not contact server via socket "
+                    . Notify::Config->get('socket_path');
+        } elsif(Notify::Config->get('socket_type') eq 'INET') {
+            $parent = IO::Socket::UNIX->new(
+                PeerAddr   => Notify::Config->get('local_addr'),
+                PeerPort   => Notify::Config->get('local_port'),
+                Type        => SOCK_STREAM,
+                Proto       => 'tcp')
+                or die "Failed to contact INET parent.";
+        }
 
         # Let the parent know we are ready to send.
         my $message = Notify::Message->new(Notify::Message->CMD_READY);

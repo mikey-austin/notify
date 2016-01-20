@@ -23,7 +23,7 @@ use strict;
 use warnings;
 use Notify::Config;
 use Notify::Message;
-use IO::Socket::UNIX;
+use Notify::Socket;
 use Notify::Logger;
 use Notify::RecipientFactory;
 
@@ -199,10 +199,16 @@ sub remove {
 #
 sub send {
     my ($self, $message) = @_;
-    my $server = IO::Socket::UNIX->new(
-        Peer => $self->{_options}->{socket},
-        Type => SOCK_STREAM)
-        or die 'Could not contact server on ' . $self->{_options}->{socket} . "\n";
+    #my $server = IO::Socket::UNIX->new(
+    #    Peer => $self->{_options}->{socket},
+    #    Type => SOCK_STREAM)
+    #    or die 'Could not contact server on ' . $self->{_options}->{socket} . "\n";
+
+    my $server = Notify::Socket->new({
+        _mode    => 'CLIENT', 
+        _options => $self->{_options},
+    });
+    #or die 'Could not contact server on ' . $self->{_options}->{socket} . "\n";
 
     # Send message off.
     print $server $message->encode;
