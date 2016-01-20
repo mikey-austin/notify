@@ -17,7 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
-use Test::Simple tests => 7;
+use Test::Simple tests => 10;
 use Notify::Notification;
 use Notify::RecipientFactory;
 
@@ -36,8 +36,28 @@ $other = {
     '_subject' => 'subject',
     '_body' => 'test body',
 };
- 
 ok($notification->matches($other));
+
+$other = {
+    '_label' => '0455555555',
+    '_subject' => 'subject',
+    '_body' => 'test body',
+};
+ok(not $notification->matches($other));
+
+$other = {
+    '_label' => '0412341234',
+    '_subject' => 'another subject',
+    '_body' => 'test body',
+};
+ok(not $notification->matches($other));
+
+$other = {
+    '_label' => '0412341234',
+    '_subject' => 'subject',
+    '_body' => 'another test body',
+};
+ok(not $notification->matches($other));
 
 $decoded = {
     recipient => {
@@ -46,7 +66,6 @@ $decoded = {
     body => $body,
     subject => $subject,
 };
-
 $notification = Notify::Notification->create_from_decoded_json($decoded);
 ok($notification->get_recipient->get_label eq $label);
 ok($notification->get_body eq $body);
