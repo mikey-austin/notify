@@ -24,13 +24,14 @@ use Getopt::Long;
 use Pod::Usage;
 
 my $options = {
-    command => undef,
-    label   => undef,
-    body    => undef,
-    subject => undef,
-    socket  => undef,
-    config  => undef,
-    minutes => undef,
+    command     => undef,
+    label       => undef,
+    body        => undef,
+    socket_type => undef,
+    subject     => undef,
+    socket_path => undef,
+    config      => undef,
+    minutes     => undef,
 };
 
 my $help = 0;
@@ -40,7 +41,8 @@ GetOptions(
     "label|recipient=s" => \$options->{label},
     "body=s"            => \$options->{body},
     "subject=s"         => \$options->{subject},
-    "socket=s"          => \$options->{socket},
+    "unixsocket"        => sub { $options->{socket_type} = 'UNIX' },
+    "socket-path=s"     => \$options->{socket_path},
     "config=s"          => \$options->{config},
     "minutes=s"         => \$options->{minutes},
     "help"              => \$help,
@@ -78,9 +80,13 @@ notifyctl <command> [options]
 
 =over 15
 
-=item --socket=C<path>
+=item --unixsocket
 
-path to socket
+use a unix socket
+
+=item --socket-path=C<path>
+
+path to unix socket
 
 =item --label=C<label>
 

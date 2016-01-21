@@ -57,9 +57,10 @@ sub set_options {
     # Initialise configuration.
     Notify::Config->reload($options->{config}, $self->DEFAULTS);
 
-    # Set a default socket if not specified.
-    $self->{_options}->{socket} =
-        $options->{socket} || Notify::Config->get('socket_path');
+    # Set a default socket type, socket path if not specified.
+    $self->{_options}->{$_} =
+        $options->{$_} || Notify::Config->get($_)
+            for qw(socket_type socket_path);
 
     $self->{_options}->{$_} = $options->{$_}
         for qw(label body subject minutes);
@@ -199,16 +200,13 @@ sub remove {
 #
 sub send {
     my ($self, $message) = @_;
-    #my $server = IO::Socket::UNIX->new(
-    #    Peer => $self->{_options}->{socket},
-    #    Type => SOCK_STREAM)
-    #    or die 'Could not contact server on ' . $self->{_options}->{socket} . "\n";
 
-    my $server = Notify::Socket->new({
-        _mode    => 'CLIENT', 
+    my $socket = Notify::Socket->new({
+        _mode    => Notify::Socket->CLIENT, 
         _options => $self->{_options},
-    });
-    #or die 'Could not contact server on ' . $self->{_options}->{socket} . "\n";
+    }) or die 'Could not initialize server. \n';
+    
+    my $server = $socket->get_handle();
 
     # Send message off.
     print $server $message->encode;

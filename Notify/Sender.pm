@@ -23,20 +23,21 @@ use strict;
 use warnings;
 use Notify::Config;
 use Notify::Message;
-use IO::Socket::UNIX;
+use Notify::Socket;
 use Notify::Logger;
 
 sub new {
-    my $class = shift;
+    my ($class, $options) = @_;
     my $self = {
         _queue   => [],   # Queue of messages to be sent immediately.
         _to_send => 0,
+        _options => $options,
     };
     bless $self, $class;
 }
 
 sub start {
-    my $self = shift;
+    my ($self, $options) = @_;
     my $select = IO::Select->new;
 
     Notify::Logger->write('Sender process started, sending every '
@@ -54,22 +55,12 @@ sub start {
     $SIG{'HUP'} = sub { exit(0); };
 
     do {
-        my $parent;
+        my $parent_socket = Notify::Socket->new({
+            _mode    => Notify::Socket->CLIENT, 
+            _options => $options,
+        }) or die 'Could not initialize parent socket. \n';
 
-        if(Notify::Config->get('socket_type') eq 'UNIX') {
-            $parent = IO::Socket::UNIX->new(
-                Peer => Notify::Config->get('socket_path'),
-                Type => SOCK_STREAM)
-                or die "Could not contact server via socket "
-                    . Notify::Config->get('socket_path');
-        } elsif(Notify::Config->get('socket_type') eq 'INET') {
-            $parent = IO::Socket::UNIX->new(
-                PeerAddr   => Notify::Config->get('local_addr'),
-                PeerPort   => Notify::Config->get('local_port'),
-                Type        => SOCK_STREAM,
-                Proto       => 'tcp')
-                or die "Failed to contact INET parent.";
-        }
+        my $parent = $parent_socket->get_handle();
 
         # Let the parent know we are ready to send.
         my $message = Notify::Message->new(Notify::Message->CMD_READY);

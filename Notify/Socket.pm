@@ -28,16 +28,75 @@ use IO::Socket::INET;
 use Notify::Logger;
 
 use constant {
-    CLIENT => 'CLIENT',
-    SERVER => 'SERVER',
+    CLIENT  => 'CLIENT',
+    SERVER  => 'SERVER',
+    INET    => 'INET',
+    UNIX    => 'UNIX',
 };
 
 sub new {
-    my ($class, $config) = @_;
-
-    my $self = $config;
-
+    my ($class, $options) = @_;
+    # self/options includes _mode and _options. 
+    my $self = $options; 
+    $self->{_handle} = undef;
     bless $self, $class;
+
+    $self->set_handle();
+
+    return $self;
+}
+
+sub set_handle {
+    my ($self) = shift;
+
+    if($self->{_mode} eq CLIENT
+        and $self->{_options}->{socket_type} eq UNIX) {
+
+            $self->{_handle} = IO::Socket::UNIX->new(
+                Peer => $self->{_options}->{socket_path},
+                Type => SOCK_STREAM,
+            ) or die 'Could not contact client UNIX socket at ' 
+                . $self->{_options}->{socket_path} . "\n"; 
+    }
+    if($self->{_mode} eq CLIENT
+        and $self->{_options}->{socket_type} eq INET) {
+
+            $self->{_handle} = IO::Socket::INET->new(
+                PeerAddr => Notify::Config->get('local_addr'),
+                PeerPort => Notify::Config->get('local_port'),
+                Proto    => 'tcp',
+            ) or die 'Could not contact client INET socket at local test'; 
+    }
+    if($self->{_mode} eq SERVER
+        and $self->{_options}->{socket_type} eq UNIX) {
+
+            $self->{_handle} = IO::Socket::UNIX->new(
+                Local => $self->{_options}->{socket_path},
+                Type => SOCK_STREAM,
+                Listen => 5,
+            ) or die 'Could not contact server UNIX socket at ' 
+                . $self->{_options}->{socket_path} . "\n"; 
+    }
+    if($self->{_mode} eq SERVER
+        and $self->{_options}->{socket_type} eq INET) {
+
+            $self->{_handle} = IO::Socket::INET->new(
+                LocalAddr => Notify::Config->get('local_addr'),
+                LocalPort => Notify::Config->get('local_port'),
+                Proto    => 'tcp',
+                Listen => 5,
+            ) or die 'Could not contact server INET socket at local test';
+    } 
+    die 'Mode or socket type not recognized in socket creation'
+        if not defined $self->{_handle};
+}
+
+sub get_handle {
+    my $self = shift;
+
+    return $self->{_handle};
 }
 
 1;
+
+

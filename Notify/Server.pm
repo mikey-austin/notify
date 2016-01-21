@@ -28,9 +28,9 @@ use Notify::Logger;
 use Notify::Notification;
 use Notify::Sender;
 use Notify::Server;
+use Notify::Socket;
 use Notify::Suspend;
 use Notify::ProviderFactory;
-use IO::Socket::UNIX;
 use IO::Select;
 use IO::Handle;
 use POSIX ();
@@ -59,13 +59,12 @@ sub new {
     Notify::Logger->info('Loading configuration from '
         . Notify::Config->new->{_file});
 
-    $self->{_options}->{socket} =
-        $options->{socket} || Notify::Config->get('socket_path');
-    Notify::Config->set('socket_path', $self->{_options}->{socket});
+    $self->{_options}->{$_} =
+        $options->{$_} || Notify::Config->get($_)
+            for qw(socket_type socket_path pidfile);
 
-    $self->{_options}->{pidfile} =
-        $options->{pidfile} || Notify::Config->get('pidfile');
-    Notify::Config->set('pidfile', $self->{_options}->{pidfile});
+    Notify::Config->set($_, $self->{_options}->{$_})
+        for qw(socket_type socket_path pidfile);
 
     # Set remaining options.
     $self->{_options}->{$_} = $options->{$_} for qw|daemonize user group config|;
@@ -96,30 +95,18 @@ sub start {
     # Set the various signal handlers after the sender has been forked.
     $self->register_signals;
 
-    #
-    my $listen;
+    my $socket = Notify::Socket->new({
+        _mode    => Notify::Socket->SERVER, 
+        _options => $self->{_options},
+    }) or die 'Could not initialize socket. \n';
 
-    if(Notify::Config->get('socket_type') eq 'UNIX') {
-        my $listen = new IO::Socket::UNIX(
-            Listen => 5,
-            Type   => SOCK_STREAM,
-            Local  => Notify::Config->get('socket_path')
-        );
-
-    } elsif(Notify::Config->get('socket_type') eq 'INET') {
-        my $listen = new IO::Socket::INET(
-            Listen      => 5,
-            Type        => SOCK_STREAM,
-            Proto       => 'tcp',
-            LocalAddr   => Notify::Config->get('local_addr'),
-            LocalPort   => Notify::Config->get('local_port'),
-        );
-    }
+    my $listen = $socket->get_handle();
 
     $select->add($listen);
 
     Notify::Logger->write("Started notify, listening at "
-                          . Notify::Config->get('socket_path'));
+                          . Notify::Config->get('socket_path'))
+        if $self->{_options}->{socket_type} eq 'UNIX';
 
     # Start monitoring file descriptors.
     for(;;) {
@@ -363,10 +350,10 @@ sub start_sender {
 
     if(!($pid = fork())) {
         # In child.
-        my $sender_proc = Notify::Sender->new;
+        my $sender_proc = Notify::Sender->new();
 
         # Start the sleep loop for the sender process.
-        $sender_proc->start;
+        $sender_proc->start($self->{_options});
     }
     elsif($pid < 0) {
         die Notify::Logger->err('Could not fork sender process, exiting...');
@@ -435,7 +422,7 @@ sub register_signals {
         Notify::Config->reload($self->{_options}->{config}, $self->DEFAULTS);
 
         # Override any options set via command line.
-        Notify::Config->set('socket_path', $self->{_options}->{socket});
+        Notify::Config->set('socket_path', $self->{_options}->{socket_path});
         Notify::Config->set('pidfile', $self->{_options}->{pidfile});
 
         # The sender will automatically restart.

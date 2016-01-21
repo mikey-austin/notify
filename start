@@ -26,10 +26,10 @@ rm $PID
 # Restart server.
 case $MODE in
 "default")
-  ./notify --config $CONFIG --socket $SOCKET --pidfile $PID
+  ./notify --config=$CONFIG --socket=$SOCKET --pidfile=$PID
   ;;
 "debug")
-  perl -d notify --config $CONFIG --socket $SOCKET --pidfile $PID
+  perl -MDebug -d notify --config=$CONFIG --socket=$SOCKET --pidfile=$PID
   ;;
 *)
   # unknown
