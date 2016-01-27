@@ -27,17 +27,18 @@ use Notify::Socket;
 use Notify::Logger;
 
 sub new {
-    my ($class, $options) = @_;
+    my $class = shift;
     my $self = {
         _queue   => [],   # Queue of messages to be sent immediately.
         _to_send => 0,
-        _options => $options,
     };
+
     bless $self, $class;
 }
 
 sub start {
     my ($self, $options) = @_;
+
     my $select = IO::Select->new;
 
     Notify::Logger->write('Sender process started, sending every '
@@ -55,10 +56,11 @@ sub start {
     $SIG{'HUP'} = sub { exit(0); };
 
     do {
-        my $parent_socket = Notify::Socket->new({
-            _mode    => Notify::Socket->CLIENT, 
-            _options => $options,
-        }) or die 'Could not initialize parent socket. \n';
+        my $parent_socket = Notify::Socket->new(
+            mode    => Notify::Socket->CLIENT, 
+            socket_type => $options->{socket_type},
+            socket_path => $options->{socket_path},
+        ) or die 'Could not initialize parent socket. \n';
 
         my $parent = $parent_socket->get_handle();
 

@@ -193,7 +193,6 @@ sub remove {
     return $self->send($message);
 } 
 
-
 #
 # Send off a message to the server, and return the response
 # message.
@@ -201,10 +200,11 @@ sub remove {
 sub send {
     my ($self, $message) = @_;
 
-    my $socket = Notify::Socket->new({
-        _mode    => Notify::Socket->CLIENT, 
-        _options => $self->{_options},
-    }) or die 'Could not initialize server. \n';
+    my $socket = Notify::Socket->new(
+        mode    => Notify::Socket->CLIENT, 
+        socket_type => $self->{_options}->{socket_type},
+        socket_path => $self->{_options}->{socket_path},
+    ) or die 'Could not initialize server. \n';
     
     my $server = $socket->get_handle();
 

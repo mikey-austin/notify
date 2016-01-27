@@ -95,13 +95,15 @@ sub start {
     # Set the various signal handlers after the sender has been forked.
     $self->register_signals;
 
-    my $socket = Notify::Socket->new({
-        _mode    => Notify::Socket->SERVER, 
-        _options => $self->{_options},
-    }) or die 'Could not initialize socket. \n';
+    my $socket = Notify::Socket->new(
+        mode        => Notify::Socket->SERVER, 
+        socket_type => $self->{_options}->{socket_type},
+        socket_path => $self->{_options}->{socket_path},
+    ) or die 'Could not initialize socket. \n';
 
     my $listen = $socket->get_handle();
 
+    # TODO add multiple handles here.
     $select->add($listen);
 
     Notify::Logger->write("Started notify, listening at "

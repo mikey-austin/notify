@@ -22,8 +22,6 @@ package Notify::SMS::ProviderDummy;
 use strict;
 use warnings;
 
-use HTTP::Request::Common;
-use JSON;
 use base qw(Notify::Provider);
 
 sub send {
