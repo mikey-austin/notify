@@ -23,7 +23,7 @@ use strict;
 use warnings;
 use Notify::Config;
 use Notify::Message;
-use Notify::Socket;
+use Notify::ClientSocket;
 use Notify::Logger;
 use Notify::RecipientFactory;
 
@@ -57,10 +57,10 @@ sub set_options {
     # Initialise configuration.
     Notify::Config->reload($options->{config}, $self->DEFAULTS);
 
-    # Set a default socket type, socket path if not specified.
+    # Set a default socket path, bind address and port if not specified.
     $self->{_options}->{$_} =
         $options->{$_} || Notify::Config->get($_)
-            for qw(socket_type socket_path);
+            for qw(socket bind_address port);
 
     $self->{_options}->{$_} = $options->{$_}
         for qw(label body subject minutes);
@@ -200,11 +200,8 @@ sub remove {
 sub send {
     my ($self, $message) = @_;
 
-    my $socket = Notify::Socket->new(
-        mode    => Notify::Socket->CLIENT, 
-        socket_type => $self->{_options}->{socket_type},
-        socket_path => $self->{_options}->{socket_path},
-    ) or die 'Could not initialize server. \n';
+    my $socket = Notify::ClientSocket->new($self->{_options})
+        or die 'Could not initialize server: $! \n';
     
     my $server = $socket->get_handle();
 

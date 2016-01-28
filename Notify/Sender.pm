@@ -23,7 +23,7 @@ use strict;
 use warnings;
 use Notify::Config;
 use Notify::Message;
-use Notify::Socket;
+use Notify::ClientSocket;
 use Notify::Logger;
 
 sub new {
@@ -56,11 +56,8 @@ sub start {
     $SIG{'HUP'} = sub { exit(0); };
 
     do {
-        my $parent_socket = Notify::Socket->new(
-            mode    => Notify::Socket->CLIENT, 
-            socket_type => $options->{socket_type},
-            socket_path => $options->{socket_path},
-        ) or die 'Could not initialize parent socket. \n';
+        my $parent_socket = Notify::ClientSocket->new($options)
+            or die 'Could not initialize parent socket: $! \n';
 
         my $parent = $parent_socket->get_handle();
 

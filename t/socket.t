@@ -17,19 +17,21 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
-use Test::Simple tests => 2;
-use Notify::Socket;
+use Test::Simple tests => 3;
+use Notify::ClientSocket;
+use Notify::ServerSocket;
 
-$unix_client_options = {
-    socket_type => 'UNIX',
-    socket => "/tmp/test.sock",
+$options = {
+    socket        => "/tmp/test.sock",
+    bind_address  => "localhost",
+    port          => 9000,
 };
     
     
-$s = Notify::Socket->new({
-    _mode       => 'CLIENT',
-    _options    => $unix_client_options,
-});
+$s = Notify::ServerSocket->new(
+    options    => $options,
+);
 
-ok($s->{_mode} eq Notify::Socket->CLIENT);
-ok($s->{_options}->{socket_type} eq Notify::Socket->UNIX); 
+ok($s->{_options}->{socket} eq '/tmp/test.sock'); 
+ok($s->{_options}->{bind_address} eq 'localhost'); 
+ok($s->{_options}->{port} eq 9000);

@@ -27,13 +27,14 @@ use Notify::Queue;
 use Notify::Logger;
 use Notify::Notification;
 use Notify::Sender;
-use Notify::Server;
+use Notify::ServerSocket;
 use Notify::Socket;
 use Notify::Suspend;
 use Notify::ProviderFactory;
 use IO::Select;
 use IO::Handle;
 use POSIX ();
+use Data::Dumper;
 
 use constant {
     DEFAULTS => [
@@ -61,10 +62,10 @@ sub new {
 
     $self->{_options}->{$_} =
         $options->{$_} || Notify::Config->get($_)
-            for qw(socket_type socket_path pidfile);
+            for qw(socket bind_address port pidfile);
 
     Notify::Config->set($_, $self->{_options}->{$_})
-        for qw(socket_type socket_path pidfile);
+        for qw(socket bind_address port pidfile);
 
     # Set remaining options.
     $self->{_options}->{$_} = $options->{$_} for qw|daemonize user group config|;
@@ -78,7 +79,7 @@ sub start {
 
     # If socket already exists, exit.
     die Notify::Logger->err('Socket exists, exiting...')
-        if -e Notify::Config->get('socket_path');
+        if -e Notify::Config->get('socket');
 
     die Notify::Logger->err('PID file exists, exiting...')
         if -e Notify::Config->get('pidfile');
@@ -95,26 +96,22 @@ sub start {
     # Set the various signal handlers after the sender has been forked.
     $self->register_signals;
 
-    my $socket = Notify::Socket->new(
-        mode        => Notify::Socket->SERVER, 
-        socket_type => $self->{_options}->{socket_type},
-        socket_path => $self->{_options}->{socket_path},
-    ) or die 'Could not initialize socket. \n';
+    # Create the sockets object.
+    my $sockets = Notify::ServerSocket->new($self->{_options}) 
+        or die 'Could not initialize socket:\n$!\n';
 
-    my $listen = $socket->get_handle();
+    # Get the file handles to listen to.
+    my @listeners = $sockets->get_handles();
 
-    # TODO add multiple handles here.
-    $select->add($listen);
-
-    Notify::Logger->write("Started notify, listening at "
-                          . Notify::Config->get('socket_path'))
-        if $self->{_options}->{socket_type} eq 'UNIX';
+    # Add the file handles to the selector.
+    $sockets->add_handles($select);
 
     # Start monitoring file descriptors.
     for(;;) {
         while(my @ready = $select->can_read) {
             foreach my $handle (@ready) {
-                if($handle == $listen) {
+                # NO SPAGETT
+                if($handle == @listeners[0] || $handle == @listeners[1]) {
                     # There is a connection waiting to be accepted.
                     my $new = $listen->accept;
 
@@ -212,6 +209,7 @@ sub start {
                     $select->remove($handle);
                     $handle->close;
                 }
+            }
             }
         }
     }
@@ -424,7 +422,7 @@ sub register_signals {
         Notify::Config->reload($self->{_options}->{config}, $self->DEFAULTS);
 
         # Override any options set via command line.
-        Notify::Config->set('socket_path', $self->{_options}->{socket_path});
+        Notify::Config->set('socket', $self->{_options}->{socket});
         Notify::Config->set('pidfile', $self->{_options}->{pidfile});
 
         # The sender will automatically restart.
@@ -471,7 +469,7 @@ sub shutdown {
     $self->stop_suspend;
 
     # Clean up socket and pidfile.
-    unlink(Notify::Config->get('socket_path')) if -e Notify::Config->get('socket_path');
+    unlink(Notify::Config->get('socket')) if -e Notify::Config->get('socket');
     unlink(Notify::Config->get('pidfile')) if -e Notify::Config->get('pidfile');
 }
 

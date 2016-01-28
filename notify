@@ -23,8 +23,7 @@ use Getopt::Long;
 use Pod::Usage;
 
 my $options = {
-    socket_path => undef,
-    socket_type => undef,
+    socket      => undef,
     daemonize   => 0,
     user        => undef,
     group       => undef,
@@ -37,8 +36,7 @@ my $version = 0;
 
 GetOptions(
     "daemonize|daemon|daemonise" => \$options->{daemonize},
-    "unixsocket"                 => sub { $options->{socket_type} = 'UNIX' },
-    "socket-path=s"              => \$options->{socket_path},
+    "socket=s"                   => \$options->{socket},
     "user=s"                     => \$options->{user},
     "group=s"                    => \$options->{group},
     "pidfile=s"                  => \$options->{pidfile},
@@ -69,15 +67,16 @@ notify - Notification throttling daemon
   notify [options]
 
   Options:
-    --daemon                    start as a daemon
-    --unixsocket                use unix socket
-    --socket-path=<socket>      path to unix socket
-    --user=<user>               user to setuid to
-    --group=<group>             group to setgid to
-    --pidfile=<pidfile>         location of the pidfile
-    --config=<config>           path to configuration file
-    --help                      print help and exit
-    --version                   print version and exit
+    --daemon                      start as a daemon
+    --user=<user>                 user to setuid to
+    --group=<group>               group to setgid to
+    --socket=<socket>             path to socket
+    --bind-address=<bind_address> bind address
+    --port=<port>                 port number
+    --pidfile=<pidfile>           location of the pidfile
+    --config=<config>             path to configuration file
+    --help                        print help and exit
+    --version                     print version and exit
 
 =head1 DESCRIPTION
 

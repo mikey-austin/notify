@@ -79,7 +79,6 @@ sub delete {
     foreach my $id (keys %{$self->{_notifications}}) {
         my @indices;
 
-        # filter
         for my $i (0 .. $#{$self->{_notifications}->{$id}}) { 
             if($sub->(@{$self->{_notifications}->{$id}}[$i])) { 
                 push @indices, $i;

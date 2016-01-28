@@ -24,14 +24,15 @@ use Getopt::Long;
 use Pod::Usage;
 
 my $options = {
-    command     => undef,
-    label       => undef,
-    body        => undef,
-    socket_type => undef,
-    subject     => undef,
-    socket_path => undef,
-    config      => undef,
-    minutes     => undef,
+    command       => undef,
+    label         => undef,
+    body          => undef,
+    subject       => undef,
+    socket        => undef,
+    bind_address  => undef,
+    port          => undef,
+    config        => undef,
+    minutes       => undef,
 };
 
 my $help = 0;
@@ -41,8 +42,9 @@ GetOptions(
     "label|recipient=s" => \$options->{label},
     "body=s"            => \$options->{body},
     "subject=s"         => \$options->{subject},
-    "unixsocket"        => sub { $options->{socket_type} = 'UNIX' },
-    "socket-path=s"     => \$options->{socket_path},
+    "socket=s"          => \$options->{socket},
+    "bind_address=s"    => \$options->{bind_address},
+    "port=s"            => \$options->{port},
     "config=s"          => \$options->{config},
     "minutes=s"         => \$options->{minutes},
     "help"              => \$help,
@@ -80,14 +82,6 @@ notifyctl <command> [options]
 
 =over 15
 
-=item --unixsocket
-
-use a unix socket
-
-=item --socket-path=C<path>
-
-path to unix socket
-
 =item --label=C<label>
 
 recipient label
@@ -99,6 +93,18 @@ notification body
 =item --subject=C<sub>
 
 notification subject
+
+=item --socket=C<path>
+
+path to socket
+
+=item --bind_address=C<address>
+
+bind address
+
+=item --port=C<port>
+
+port number
 
 =item --minutes=C<minutes>
 
