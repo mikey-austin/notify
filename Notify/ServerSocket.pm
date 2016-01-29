@@ -57,10 +57,12 @@ sub set_sockets() {
             LocalPort => $self->{_options}->{port},
             Proto     => 'tcp',
             ReuseAddr => 1,
-            Listen    => 5,
-        ) or die 'Could not initialize server at address '
+            Type      => SOCK_STREAM,
+        ) or die 'Could not bind at address '
             . $self->{_options}->{bind_address}
             . ':' . $self->{_options}->{port} . "\n$!\n"; 
+
+        $self->{_inet_socket}->listen(5);
     }
 }
 

@@ -27,6 +27,8 @@ use Notify::ClientSocket;
 use Notify::Logger;
 use Notify::RecipientFactory;
 
+use Data::Dumper;
+
 use constant {
     DEFAULTS => [
         'notify.conf',
@@ -200,17 +202,15 @@ sub remove {
 sub send {
     my ($self, $message) = @_;
 
-    my $socket = Notify::ClientSocket->new($self->{_options})
+    my $sockets = Notify::ClientSocket->new($self->{_options})
         or die 'Could not initialize server: $! \n';
     
-    my $server = $socket->get_handle();
-
     # Send message off.
-    print $server $message->encode;
+    $sockets->send_message($message);
 
     # Every message gets a response.
-    my $response = Notify::Message->from_handle($server);
-    $server->close;
+    my $response = $sockets->get_response;
+    $sockets->close_connection;
 
     return $response;
 }

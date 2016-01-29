@@ -1,4 +1,3 @@
-#!/usr/bin/perl
 #
 # Copyright (C) 2014  Mikey Austin <mikey@jackiemclean.net>
 #
@@ -100,9 +99,6 @@ sub start {
     my $sockets = Notify::ServerSocket->new($self->{_options}) 
         or die 'Could not initialize socket:\n$!\n';
 
-    # Get the file handles to listen to.
-    my @listeners = $sockets->get_handles();
-
     # Add the file handles to the selector.
     $sockets->add_handles($select);
 
@@ -110,8 +106,9 @@ sub start {
     for(;;) {
         while(my @ready = $select->can_read) {
             foreach my $handle (@ready) {
-                # NO SPAGETT
-                if($handle == @listeners[0] || $handle == @listeners[1]) {
+                # TODO Fix indentation.
+                my $listen = $sockets->get_pending_handle($handle);
+                if(defined $listen) {
                     # There is a connection waiting to be accepted.
                     my $new = $listen->accept;
 
@@ -122,6 +119,10 @@ sub start {
                     #
                     # This is a connection ready for reading.
                     #
+                    
+                    # For debug.
+                    log_message_protocol($handle);
+ 
                     my $response;
                     if(my $message = Notify::Message->from_handle($handle)) {
                         if($message->command eq $message->CMD_NOTIF) {
@@ -209,7 +210,6 @@ sub start {
                     $select->remove($handle);
                     $handle->close;
                 }
-            }
             }
         }
     }
@@ -471,6 +471,23 @@ sub shutdown {
     # Clean up socket and pidfile.
     unlink(Notify::Config->get('socket')) if -e Notify::Config->get('socket');
     unlink(Notify::Config->get('pidfile')) if -e Notify::Config->get('pidfile');
+}
+
+sub log_message_protocol {
+    my $handle = shift;
+
+    my $message_origin = "Unknown.";
+
+    if($handle->protocol == 6) {
+        $message_origin = "TCP.";
+    }
+    elsif($handle->protocol == 0) {
+        $message_origin = "UNIX.";
+    }
+    
+    Notify::Logger->write(
+        'Message received from: ' . $message_origin
+    );
 }
 
 1;

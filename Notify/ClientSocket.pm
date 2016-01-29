@@ -52,16 +52,61 @@ sub set_sockets() {
                 PeerAddr => $self->{_options}->{bind_address},
                 PeerPort => $self->{_options}->{port},
                 Proto    => 'tcp',
+                Type     => SOCK_STREAM,
         ) or die 'Could not contact client at address '
             . $self->{_options}->{bind_address}
             . ':' . $self->{_options}->{port} . "\n$!\n"; 
     }
 }
 
-sub get_handle {
+#
+# Send a message to the server.
+#
+sub send_message {
+    my ($self, $message) = @_;
+
+    # Try the INET socket first,
+    if(defined $self->{_inet_socket}) {
+        print {$self->{_inet_socket}} $message->encode;
+    }
+    else {
+        print {$self->{_unix_socket}} $message->encode
+            or die 'Could not send message to socket.\n';
+    }
+}
+
+#
+# Get a response from the server.
+#
+sub get_response {
+    my $self = shift;
+    my $response = undef;
+
+    # Try the INET socket first,
+    if(defined $self->{_inet_socket}) {
+        $response = Notify::Message->from_handle(
+            $self->{_inet_socket});
+    }
+    else {
+        $response = Notify::Message->from_handle(
+            $self->{_unix_socket});
+    }
+    
+    die 'Could not recieve message from server.\n'
+        if(!defined $response);
+
+    return $response;
+}
+ 
+#
+# Close the connection to the server.
+#
+sub close_connection {
     my $self = shift;
 
-    return $self->{_inet_socket};
+    $self->{_inet_socket}->close
+        if(defined $self->{_inet_socket});
+    $self->{_unix_socket}->close;
 }
 
 1;

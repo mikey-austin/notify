@@ -23,7 +23,7 @@ use strict;
 use warnings;
 use Notify::Config;
 use Notify::Message;
-use Notify::ClientSocket;
+use IO::Socket::UNIX;
 use Notify::Logger;
 
 sub new {
@@ -56,10 +56,11 @@ sub start {
     $SIG{'HUP'} = sub { exit(0); };
 
     do {
-        my $parent_socket = Notify::ClientSocket->new($options)
-            or die 'Could not initialize parent socket: $! \n';
-
-        my $parent = $parent_socket->get_handle();
+        my $parent = IO::Socket::UNIX->new(
+            Peer => Notify::Config->get('socket'),
+            Type => SOCK_STREAM)
+            or die "Could not contact server via socket "
+                . Notify::Config->get('socket');
 
         # Let the parent know we are ready to send.
         my $message = Notify::Message->new(Notify::Message->CMD_READY);

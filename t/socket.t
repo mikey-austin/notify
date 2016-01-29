@@ -17,9 +17,12 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
-use Test::Simple tests => 3;
+use Test::Simple tests => 8;
 use Notify::ClientSocket;
 use Notify::ServerSocket;
+use Notify::Socket;
+use IO::Select;
+use Data::Dumper;
 
 $options = {
     socket        => "/tmp/test.sock",
@@ -28,10 +31,17 @@ $options = {
 };
     
     
-$s = Notify::ServerSocket->new(
-    options    => $options,
-);
+my $serversock = Notify::ServerSocket->new($options);
+ok($serversock->{_options}->{socket} eq '/tmp/test.sock'); 
+ok($serversock->{_options}->{bind_address} eq 'localhost'); 
+ok($serversock->{_options}->{port} eq 9000);
 
-ok($s->{_options}->{socket} eq '/tmp/test.sock'); 
-ok($s->{_options}->{bind_address} eq 'localhost'); 
-ok($s->{_options}->{port} eq 9000);
+my $select = IO::Select->new();
+ok($serversock->add_handles($select));
+
+$serversock->add_handles($select);
+ok($select->count() == 2);
+
+ok(defined $serversock->match($serversock->{_unix_socket}));
+ok(defined $serversock->match($serversock->{_inet_socket}));
+ok(!defined $serversock->match(1234));

@@ -24,6 +24,7 @@ use warnings;
 use Notify::Config;
 use Notify::Message;
 use Notify::Logger;
+
 use Data::Dumper;
 
 sub new {
@@ -41,21 +42,6 @@ sub new {
 }
 
 #
-# Returns an array of sockets/io handles
-# TODO: Not this! Violates encapsulation.
-#
-sub get_handles {
-    my $self = shift;
-
-    my @handles = ($self->{_unix_socket});
-
-    push @handles, $self->{_inet_socket}
-        if defined $self->{_inet_socket};
-
-    return @handles;
-}
-
-#
 # Adds the socket handles to the select interface parameter.
 #
 sub add_handles {
@@ -64,6 +50,24 @@ sub add_handles {
     $select->add($self->{_unix_socket});
     $select->add($self->{_inet_socket})
         if(defined $self->{_inet_socket});
+}
+
+#
+# Returns a handle to the socket matching the parameter.
+#
+sub get_pending_handle {
+    my ($self, $handle) = @_;
+    my $match = undef;
+
+    $match = $self->{_unix_socket}
+        if($handle == $self->{_unix_socket});
+
+    if(defined $self->{_inet_socket}) {
+        $match = $self->{_inet_socket}
+            if($handle == $self->{_inet_socket});
+    }
+
+    return $match;
 }
 
 1;
