@@ -121,7 +121,7 @@ sub start {
                     #
                     
                     # For debug.
-                    log_message_protocol($handle);
+                    # log_message_protocol($handle);
  
                     my $response;
                     if(my $message = Notify::Message->from_handle($handle)) {

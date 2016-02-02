@@ -23,6 +23,8 @@ use strict;
 use warnings;
 use base qw(Notify::Client);
 
+use Data::Dumper;
+
 #
 # Output a response based on the context of this client.
 #
@@ -31,13 +33,29 @@ sub output {
 
     return if not defined $response;
 
-    if(ref $response->body eq 'HASH') {
-        # Response should be key/value pairs.
-        foreach my $key (keys %{$response->body}) {
-            print "$key: " . $response->body->{$key} . "\n";
+    print_response($response->body);
+}
+
+
+#
+# Pretty print the data structure of the response.
+#
+sub print_response {
+    my $response = shift;
+
+    if(ref $response eq 'ARRAY') {
+        foreach my $value (@{$response}) {
+            print_response($value);
         }
+
+    } elsif(ref $response eq 'HASH') {
+        foreach my $key (keys %{$response}) {
+            print "$key: ";
+            print_response($response->{$key})
+        } 
+
     } else {
-        print $response->body, "\n";
+        print $response, "\n";
     }
 }
 
