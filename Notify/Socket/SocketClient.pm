@@ -17,14 +17,13 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
-package Notify::ClientSocket;
+package Notify::Socket::SocketClient;
 
 use strict;
 use warnings;
 use IO::Socket::UNIX;
 use IO::Socket::INET;
 use parent qw(Notify::Socket);
-use Data::Dumper;
 
 sub new {
     my ($class, $args) = @_;

@@ -26,14 +26,13 @@ use Notify::Queue;
 use Notify::Logger;
 use Notify::Notification;
 use Notify::Sender;
-use Notify::ServerSocket;
 use Notify::Socket;
 use Notify::Suspend;
 use Notify::ProviderFactory;
+use Notify::Socket::SocketServer;
 use IO::Select;
 use IO::Handle;
 use POSIX ();
-use Data::Dumper;
 
 use constant {
     DEFAULTS => [
@@ -96,7 +95,7 @@ sub start {
     $self->register_signals;
 
     # Create the sockets object.
-    my $sockets = Notify::ServerSocket->new($self->{_options}) 
+    my $sockets = Notify::Socket::SocketServer->new($self->{_options}) 
         or die 'Could not initialize socket:\n$!\n';
 
     # Add the file handles to the selector.

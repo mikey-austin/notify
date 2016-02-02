@@ -23,11 +23,9 @@ use strict;
 use warnings;
 use Notify::Config;
 use Notify::Message;
-use Notify::ClientSocket;
 use Notify::Logger;
 use Notify::RecipientFactory;
-
-use Data::Dumper;
+use Notify::Socket::SocketClient;
 
 use constant {
     DEFAULTS => [
@@ -202,7 +200,7 @@ sub remove {
 sub send {
     my ($self, $message) = @_;
 
-    my $sockets = Notify::ClientSocket->new($self->{_options})
+    my $sockets = Notify::Socket::SocketClient->new($self->{_options})
         or die 'Could not initialize server: $! \n';
     
     # Send message off.
