@@ -21,6 +21,9 @@ package Notify::Client;
 
 use strict;
 use warnings;
+
+use Data::Dumper;
+
 use Notify::Config;
 use Notify::Message;
 use Notify::Logger;
@@ -57,10 +60,10 @@ sub set_options {
     # Initialise configuration.
     Notify::Config->reload($options->{config}, $self->DEFAULTS);
 
-    # Set a default socket path, bind address and port if not specified.
+    # Set a default socket path and host list if not specified.
     $self->{_options}->{$_} =
         $options->{$_} || Notify::Config->get($_)
-            for qw(socket bind_address port);
+            for qw(socket hosts);
 
     $self->{_options}->{$_} = $options->{$_}
         for qw(label body subject minutes);

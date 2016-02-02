@@ -23,7 +23,10 @@ use strict;
 use warnings;
 use IO::Socket::UNIX;
 use IO::Socket::INET;
+use Regexp::Common qw /net/;
 use parent qw(Notify::Socket);
+
+use Data::Dumper;
 
 sub new {
     my ($class, $args) = @_;
@@ -44,17 +47,38 @@ sub set_sockets() {
     ) or die 'Could not contact client socket at ' 
       . $self->{_options}->{socket} . "\n$!\n"; 
 
-    if (defined $self->{_options}->{bind_address}
-        and defined $self->{_options}->{port})
-    {
+    foreach my $host (@{$self->{_options}->{hosts}}) {
+        my ($address, $port) = split(':', $host);
+
+        # Validate the addressport.
+        if(not $address =~ /$RE{net}{IPv4}/) {
+            print 'Could not contact host at address '
+                . $host . ', invalid address.'
+                . "\n"; 
+            next;
+        }
+
+        # Validate the port.
+        if(not $port =~  m/^[0-9]{1,5}$/) {
+            print 'Could not contact host at address '
+                . $host . ', invalid port number.'
+                . "\n"; 
+            next;
+        }
+
         $self->{_inet_socket} = IO::Socket::INET->new(
-                PeerAddr => $self->{_options}->{bind_address},
-                PeerPort => $self->{_options}->{port},
+                PeerAddr => $address,
+                PeerPort => $port,
                 Proto    => 'tcp',
                 Type     => SOCK_STREAM,
-        ) or die 'Could not contact client at address '
-            . $self->{_options}->{bind_address}
-            . ':' . $self->{_options}->{port} . "\n$!\n"; 
+        ) or print 'Could not contact host at address '
+            . $host . ', no response.'
+            . "\n"; 
+
+        if(defined $self->{_inet_socket}) {
+            print 'Connected to host at ' . $host ."\n";
+            last;
+        }
     }
 }
 
