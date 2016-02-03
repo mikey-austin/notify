@@ -21,9 +21,10 @@ package Notify::Message;
 
 use strict;
 use warnings;
+use IO::File;
 use JSON;
 use Digest::HMAC;
-use Digest::SHA;
+use Digest::SHA qw(sha1_hex);
 use Notify::Notification;
 
 use constant {
@@ -74,16 +75,34 @@ sub body {
     }
 }
 
+sub to_hmac {
+    my ($self, $message) = @_;
+
+    # Should get from config - leave for now for testing.
+    my $key_handle = IO::File->new('/home/luther/.notify.key', 'r');
+    my $key_data = undef;
+
+    if(defined $key_handle) {
+        $key_data = <$key_handle>;
+    }
+
+    my $key = sha1_hex($key_data, 'sha256');
+
+    my $hmac = Digest::HMAC->new(
+        $key,
+        'Digest::SHA'
+    );
+
+    $hmac->add($message);
+
+    return $hmac->digest;
+}
+
 sub encode {
     my $self = shift;
     my $json = JSON->new->convert_blessed(1)->encode($self);
-    my $hmac = Digest::HMAC->new(
-        Notify::Config->get('key'),
-        'Digest::SHA'
-    );
-    $hmac->add($json);
 
-    return $json . "\t" . $hmac->hexdigest . "\n";
+    return $json . "\t" . $self->to_hmac($json) . "\n";
 }
 
 sub from_handle {
@@ -108,13 +127,7 @@ sub parse {
     my ($class, $encoded) = @_;
     my ($json, $recieved_hmac) = split("\t", $encoded, 2);
 
-    # Create a new HMAC from the JSON and validate the recieved HMAC.
-    my $new_hmac = Digest::HMAC->new(
-        Notify::Config->get('key'),
-        'Digest::SHA'
-    );
-    $new_hmac->add($json);
-    my $digest = $new_hmac->hexdigest;
+    my $digest = $class->to_hmac($json);
 
     if($digest ne $recieved_hmac) {
         return $class->new(CMD_AUTH_FAILURE);

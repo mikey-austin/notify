@@ -38,29 +38,25 @@ $message->body($n);
 
 $json = '{"error":0,"command":"NOTIFICATION","body":{"recipient":{"label":"0412341234"},"body":"test","subject":"test subject"}}';
 
-# NB key in HMAC must match key in config.
-$hmac = Digest::HMAC->new('foo', 'Digest::SHA');
-$hmac->add($json);
-$raw_message = $json . "\t" . $hmac->hexdigest;
+$raw_message = $json . "\t" . Notify::Message->to_hmac($json);
 
 #
 # Test parsing a message.
 #
-#$message = Notify::Message->parse($raw_message);
-#ok($message->command eq Notify::Message->CMD_NOTIF);
-#ok(ref $message->body eq 'Notify::Notification');
-#ok($message->body->get_body eq $body);
-#ok($message->body->get_recipient->get_label eq '0412341234');
-#ok($message->body->get_subject eq $subject);
+$message = Notify::Message->parse($raw_message);
+ok($message->command eq Notify::Message->CMD_NOTIF);
+ok(ref $message->body eq 'Notify::Notification');
+ok($message->body->get_body eq $body);
+ok($message->body->get_recipient->get_label eq '0412341234');
+ok($message->body->get_subject eq $subject);
 
 #
 # Test dispatch message parsing.
 #
 $json = '{"error":0,"body":[{"body":"test","recipient":{"label":"0412341234"}},{"recipient":{"label":"0412341234"},"body":"test"}],"command":"DISPATCH"}';
-$hmac->add($json);
-$raw_message = $json . "\t" . $hmac->hexdigest . "\n";
-#$message = Notify::Message->parse($raw_message);
-#ok($message->command eq Notify::Message->CMD_DISPATCH);
-#ok(ref $message->body eq 'ARRAY');
-#ok(@{$message->body} == 2);
-#ok($message->body->[0]->get_body eq $body);
+$raw_message = $json . "\t" . Notify::Message->to_hmac($json);
+$message = Notify::Message->parse($raw_message);
+ok($message->command eq Notify::Message->CMD_DISPATCH);
+ok(ref $message->body eq 'ARRAY');
+ok(@{$message->body} == 2);
+ok($message->body->[0]->get_body eq $body);
