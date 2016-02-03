@@ -21,9 +21,6 @@ package Notify::Message;
 
 use strict;
 use warnings;
-
-use Data::Dumper;
-
 use JSON;
 use Digest::HMAC;
 use Digest::SHA;

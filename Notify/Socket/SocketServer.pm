@@ -32,7 +32,7 @@ sub new {
     
     set_sockets($self);
 
-    notify_status($self);
+    #notify_status($self);
 
     return $self;
 }

@@ -21,11 +21,6 @@ package Notify::Socket;
 
 use strict;
 use warnings;
-use Notify::Config;
-use Notify::Message;
-use Notify::Logger;
-
-use Data::Dumper;
 
 sub new {
     my ($class, $args) = @_;
