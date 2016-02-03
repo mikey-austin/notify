@@ -21,10 +21,16 @@ package Notify::Message;
 
 use strict;
 use warnings;
+
+use Data::Dumper;
+
 use JSON;
+use Digest::HMAC;
+use Digest::SHA;
 use Notify::Notification;
 
 use constant {
+    CMD_AUTH_FAILURE  => 'AUTHENTICATION_FAILURE',
     CMD_READY         => 'READY',
     CMD_NOTIF         => 'NOTIFICATION',
     CMD_EMPTY_QUEUE   => 'EMPTY_QUEUE',
@@ -54,7 +60,8 @@ sub command {
 
     if(defined $command) {
         $self->{_command} = $command;
-    } else {
+    }
+    else {
         return $self->{_command};
     }
 }
@@ -64,14 +71,22 @@ sub body {
 
     if(defined $body) {
         $self->{_body} = $body;
-    } else {
+    }
+    else {
         return $self->{_body};
     }
 }
 
 sub encode {
     my $self = shift;
-    return JSON->new->convert_blessed(1)->encode($self) . "\n";
+    my $json = JSON->new->convert_blessed(1)->encode($self);
+    my $hmac = Digest::HMAC->new(
+        Notify::Config->get('key'),
+        'Digest::SHA'
+    );
+    $hmac->add($json);
+
+    return $json . "\t" . $hmac->hexdigest . "\n";
 }
 
 sub from_handle {
@@ -93,7 +108,21 @@ sub from_handle {
 # return a Message object.
 #
 sub parse {
-    my ($class, $json) = @_;
+    my ($class, $encoded) = @_;
+    my ($json, $recieved_hmac) = split("\t", $encoded, 2);
+
+    # Create a new HMAC from the JSON and validate the recieved HMAC.
+    my $new_hmac = Digest::HMAC->new(
+        Notify::Config->get('key'),
+        'Digest::SHA'
+    );
+    $new_hmac->add($json);
+    my $digest = $new_hmac->hexdigest;
+
+    if($digest ne $recieved_hmac) {
+        return $class->new(CMD_AUTH_FAILURE);
+    }
+
     my $decoded = JSON->new->decode($json);
 
     my $message = $class->new($decoded->{command});

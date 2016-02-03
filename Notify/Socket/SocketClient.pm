@@ -21,9 +21,11 @@ package Notify::Socket::SocketClient;
 
 use strict;
 use warnings;
+use Notify::Config;
 use IO::Socket::UNIX;
 use IO::Socket::INET;
-use Regexp::Common qw /net/;
+use Regexp::Common qw(net);
+use Digest::HMAC;
 use parent qw(Notify::Socket);
 
 use Data::Dumper;
@@ -50,7 +52,7 @@ sub set_sockets() {
     foreach my $host (@{$self->{_options}->{hosts}}) {
         my ($address, $port) = split(':', $host);
 
-        # Validate the addressport.
+        # Validate the address.
         if(not $address =~ /$RE{net}{IPv4}/) {
             print 'Could not contact host at address '
                 . $host . ', invalid address.'
@@ -88,13 +90,12 @@ sub set_sockets() {
 sub send_message {
     my ($self, $message) = @_;
 
-    # Try the INET socket first,
     if(defined $self->{_inet_socket}) {
         print {$self->{_inet_socket}} $message->encode;
     }
     else {
         print {$self->{_unix_socket}} $message->encode
-            or die 'Could not send message to socket.\n';
+            or die "Could not send message to socket.\n";
     }
 }
 
@@ -117,6 +118,14 @@ sub get_response {
     
     die 'Could not recieve message from server.\n'
         if(!defined $response);
+
+
+    # Validate the response:
+    # Response will only have this command if from invalid
+    #   server, not a response citing an invalid key from
+    #   the client.
+    $response->{_body} = 'Recieved reply from untrusted server.'
+        if $response->{_command} eq Notify::Message->CMD_AUTH_FAILURE;
 
     return $response;
 }

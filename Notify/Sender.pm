@@ -64,6 +64,7 @@ sub start {
 
         # Let the parent know we are ready to send.
         my $message = Notify::Message->new(Notify::Message->CMD_READY);
+        # TODO: HMAC here.
         print $parent $message->encode;
 
         # Wait for response.

@@ -53,3 +53,19 @@ ok($message->command eq Notify::Message->CMD_DISPATCH);
 ok(ref $message->body eq 'ARRAY');
 ok(@{$message->body} == 2);
 ok($message->body->[0]->get_body eq $body);
+
+#
+# Testing encoding.
+#
+sub encode {
+    my $self = shift;
+    my $json = JSON->new->convert_blessed(1)->encode($self);
+    my $hmac = Digest::HMAC->new(
+        'foo',
+        'Digest::SHA'
+    );
+    $hmac->add($json);
+
+    return $json . "\t" . $hmac->hexdigest . "\n";
+}
+

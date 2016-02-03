@@ -18,8 +18,8 @@
 
 
 use Test::Simple tests => 8;
-use Notify::ClientSocket;
-use Notify::ServerSocket;
+use Notify::Socket::ClientSocket;
+use Notify::Socket::ServerSocket;
 use Notify::Socket;
 use IO::Select;
 use Data::Dumper;
