@@ -72,6 +72,8 @@ To run notify you will need to install the following CPAN modules:
 - YAML::XS
 - JSON
 - Module::Load
+- Regexp::Common
+- Digest::HMAC
 
 SMS Gateway Providers
 ---------------------
