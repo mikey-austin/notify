@@ -39,7 +39,8 @@ sub new {
     return $instance if defined $instance;
 
     # Default to an empty array if not defined.
-    $defaults ||= [];
+    # For testing.
+    $defaults ||= ["/home/luther/.notify.conf"];
 
     #
     # If no config file is specified, load the first

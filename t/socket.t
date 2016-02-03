@@ -17,12 +17,13 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
-use Test::Simple tests => 22;
+use Test::Simple tests => 25;
 use Notify::Socket::SocketClient;
 use Notify::Socket::SocketServer;
 use Notify::Socket;
 use Notify::Message;
 use IO::Select;
+use Data::Dumper;
 
 $options = {
     socket        => "/tmp/test.sock",
@@ -78,12 +79,48 @@ ok(not defined $client_socket->get_pending_handle(1234));
 
 #
 # Testing both with a mock message.
-# TODO finish.
+# NB Config defaults must be hard coded for the following tests.
 #
 $message = Notify::Message->new(
     _command => Notify::Message->CMD_NOTIF,
 );
 $message->body('foo');
 ok($client_socket->send_message($message));
+
+$select = IO::Select->new();
+ok($server_socket->add_handles($select));
+
+$unix_message = undef;
+$inet_message = undef;
+while(my @ready = $select->can_read) {
+    foreach my $handle (@ready) {
+        my $listen = $server_socket->get_pending_handle($handle);
+        if(defined $listen) {
+            # There is a connection waiting to be accepted.
+            my $new = $listen->accept;
+
+            # Now add the accepted file handle to the monitored list.
+            $select->add($new);
+            }
+            else {
+                $message = Notify::Message->from_handle($handle);
+
+                if(ref $handle eq 'IO::Socket::UNIX') {
+                    $unix_message = $message;
+                }
+                elsif(ref $handle eq 'IO::Socket::INET') {
+                    $inet_message = $message;
+                }
+
+                last
+                    if defined $unix_message and $inet_message;
+            }
+    $select->remove($handle);
+    $handle->close;
+    }
+}
+
+ok($unix_message->body eq 'foo');
+ok($inet_message->body eq 'foo');
 
 ok($client_socket->close_connection);

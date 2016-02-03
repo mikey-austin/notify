@@ -26,6 +26,7 @@ use JSON;
 use Digest::HMAC;
 use Digest::SHA qw(sha1_hex);
 use Notify::Notification;
+use Notify::Config;
 
 use constant {
     CMD_AUTH_FAILURE  => 'AUTHENTICATION_FAILURE',
@@ -78,12 +79,14 @@ sub body {
 sub to_hmac {
     my ($self, $message) = @_;
 
-    # Should get from config - leave for now for testing.
-    my $key_handle = IO::File->new('/home/luther/.notify.key', 'r');
+    my $key_handle = IO::File->new(Notify::Config->get('key_path'), 'r');
     my $key_data = undef;
 
     if(defined $key_handle) {
         $key_data = <$key_handle>;
+    }
+    else {
+        die 'Error: No key found at specified path.';
     }
 
     my $key = sha1_hex($key_data, 'sha256');
