@@ -22,6 +22,8 @@ package Notify::Socket;
 use strict;
 use warnings;
 
+use Data::Dumper;
+
 sub new {
     my ($class, $args) = @_;
 
@@ -42,9 +44,11 @@ sub new {
 sub add_handles {
     my ($self, $select) = @_;
 
+
     $select->add($self->{_unix_socket});
-    $select->add($self->{_inet_socket})
-        if(defined $self->{_inet_socket});
+    if(defined $self->{_inet_socket}) {
+        $select->add($self->{_inet_socket})
+    }
 }
 
 #
@@ -55,11 +59,11 @@ sub get_pending_handle {
     my $match = undef;
 
     $match = $self->{_unix_socket}
-        if($handle == $self->{_unix_socket});
+        if $handle == $self->{_unix_socket};
 
     if(defined $self->{_inet_socket}) {
         $match = $self->{_inet_socket}
-            if($handle == $self->{_inet_socket});
+            if $handle == $self->{_inet_socket};
     }
 
     return $match;

@@ -25,10 +25,7 @@ use Notify::Config;
 use IO::Socket::UNIX;
 use IO::Socket::INET;
 use Regexp::Common qw(net);
-use Digest::HMAC;
 use parent qw(Notify::Socket);
-
-use Data::Dumper;
 
 sub new {
     my ($class, $args) = @_;
@@ -96,6 +93,7 @@ sub send_message {
     else {
         print {$self->{_unix_socket}} $message->encode
             or die "Could not send message to socket.\n";
+        print "Sent message to socket.\n";
     }
 }
 
@@ -130,9 +128,6 @@ sub get_response {
     return $response;
 }
  
-#
-# Close the connection to the server.
-#
 sub close_connection {
     my $self = shift;
 

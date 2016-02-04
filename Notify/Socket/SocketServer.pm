@@ -32,7 +32,7 @@ sub new {
     
     set_sockets($self);
 
-    #notify_status($self);
+    # notify_status($self);
 
     return $self;
 }
@@ -82,6 +82,12 @@ sub notify_status {
     else {
         Notify::Logger->write('No options for network connection.');
     }
+}
+
+sub delete_socket {
+    my $self = shift;
+
+    unlink $self->{_options}->{socket};
 }
 
 1;
