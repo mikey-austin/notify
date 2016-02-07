@@ -71,7 +71,7 @@ sub walk_queue {
         for keys %{$self->{_notifications}};
 }
 
-# Deletes notifications matching the passed subroutine ie subroutine returns true.
+# Deletes notifications satisfying the passed subroutine ie subroutine returns true.
 sub delete {
     my ($self, $sub) = @_;
     my $counter = 0;

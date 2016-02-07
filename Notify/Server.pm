@@ -32,6 +32,7 @@ use Notify::ProviderFactory;
 use Notify::Socket::SocketServer;
 use IO::Select;
 use IO::Handle;
+use DBI;
 use POSIX ();
 
 use constant {
@@ -470,12 +471,11 @@ sub shutdown {
     my $self = shift;
 
     Notify::Logger->write("Shutting down notify $$...");
+    $self->store_queue;
     $self->stop_sender;
     $self->stop_suspend;
 
-    # Clean up socket and pidfile.
     unlink(Notify::Config->get('socket')) if -e Notify::Config->get('socket');
-    unlink(Notify::Config->get('pidfile')) if -e Notify::Config->get('pidfile');
 }
 
 sub log_message_protocol {
@@ -493,6 +493,26 @@ sub log_message_protocol {
     Notify::Logger->write(
         'Message received from: ' . $message_origin
     );
+}
+
+sub store_queue {
+    my $self = shift;
+
+    my $db_name = Notify::Config->get('db_name');
+    my $dbh = DBI->connect(          
+      "dbi:SQLite:dbname=$db_name", 
+      "",                          
+      "",                          
+    ) or Notify::Logger->write($DBI::errstr);
+
+    $dbh->do("DROP TABLE IF EXISTS Notifications");
+    $dbh->do("CREATE TABLE Notifications(Id INT PRIMARY KEY, body TEXT)");
+    #foreach my $notification ($self->{_queue}->dequeue) {
+        #Notify::Logger->write($notification);
+        #$dbh->do("INSERT INTO Notifications VALUES($notification)");
+        #}
+
+    $dbh->disconnect();
 }
 
 1;
