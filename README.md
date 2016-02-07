@@ -74,6 +74,7 @@ To run notify you will need to install the following CPAN modules:
 - Module::Load
 - Regexp::Common
 - Digest::HMAC
+- DBD::SQLite
 
 SMS Gateway Providers
 ---------------------
