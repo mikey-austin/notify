@@ -24,36 +24,34 @@ use warnings;
 use Notify::Config;
 use IO::Socket::UNIX;
 use IO::Socket::INET;
-use Regexp::Common qw(net);
 use parent qw(Notify::Socket);
 
 sub new {
     my ($class, $args) = @_;
 
     my $self = $class->SUPER::new($args);
-    
-    set_sockets($self);
+    $self->set_sockets;
 
     return $self;
 }
-    
-sub set_sockets() {
+
+sub set_sockets {
     my $self = shift;
 
     $self->{_unix_socket} = IO::Socket::UNIX->new(
         Peer => $self->{_options}->{socket},
         Type => SOCK_STREAM,
-    ) or die 'Could not contact client socket at ' 
-      . $self->{_options}->{socket} . "\n$!\n"; 
+    ) or die 'Could not contact client socket at '
+      . $self->{_options}->{socket} . "\n$!\n";
 
     foreach my $host (@{$self->{_options}->{hosts}}) {
         my ($address, $port) = split(':', $host);
 
         # Validate the address.
-        if(not $address =~ /$RE{net}{IPv4}/) {
+        if(not $address =~ /^(\d{1,4}\.){3}\d{1,3}$/) {
             print 'Could not contact host at address '
                 . $host . ', invalid address.'
-                . "\n"; 
+                . "\n";
             next;
         }
 
@@ -61,7 +59,7 @@ sub set_sockets() {
         if(not $port =~  m/^[0-9]{1,5}$/) {
             print 'Could not contact host at address '
                 . $host . ', invalid port number.'
-                . "\n"; 
+                . "\n";
             next;
         }
 
@@ -72,7 +70,7 @@ sub set_sockets() {
                 Type     => SOCK_STREAM,
         ) or print 'Could not contact host at address '
             . $host . ', no response.'
-            . "\n"; 
+            . "\n";
 
         if(defined $self->{_inet_socket}) {
             print 'Connected to host at ' . $host ."\n";
@@ -113,21 +111,20 @@ sub get_response {
         $response = Notify::Message->from_handle(
             $self->{_unix_socket});
     }
-    
-    die 'Could not recieve message from server.\n'
-        if(!defined $response);
 
+    die 'could not recieve message from server'
+        if not defined $response;
 
-    # Validate the response:
+    #
     # Response will only have this command if from invalid
-    #   server, not a response citing an invalid key from
-    #   the client.
+    # server, not a response citing an invalid key from the client.
+    #
     $response->{_body} = 'Recieved reply from untrusted server.'
         if $response->{_command} eq Notify::Message->CMD_AUTH_FAILURE;
 
     return $response;
 }
- 
+
 sub close_connection {
     my $self = shift;
 

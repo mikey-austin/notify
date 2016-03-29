@@ -27,27 +27,24 @@ use parent qw(Notify::Socket);
 
 sub new {
     my ($class, $args) = @_;
-
     my $self = $class->SUPER::new($args);
-    
-    set_sockets($self);
 
-    # notify_status($self);
+    $self->set_sockets;
 
     return $self;
 }
-    
-sub set_sockets() {
+
+sub set_sockets {
     my $self = shift;
 
     $self->{_unix_socket} = IO::Socket::UNIX->new(
         Local  => $self->{_options}->{socket},
         Type   => SOCK_STREAM,
         Listen => 5,
-    ) or die 'Could not initialize socket at ' 
-      . $self->{_options}->{socket} . "\n$!\n"; 
+    ) or die 'Could not initialize socket at '
+      . $self->{_options}->{socket} . "\n$!\n";
 
-    if (defined $self->{_options}->{bind_address}
+    if(defined $self->{_options}->{bind_address}
         and defined $self->{_options}->{port})
     {
         $self->{_inet_socket} = IO::Socket::INET->new(
@@ -58,7 +55,7 @@ sub set_sockets() {
             Type      => SOCK_STREAM,
         ) or die 'Could not bind at address '
             . $self->{_options}->{bind_address}
-            . ':' . $self->{_options}->{port} . "\n$!\n"; 
+            . ':' . $self->{_options}->{port} . "\n$!\n";
 
         $self->{_inet_socket}->listen(5);
     }
@@ -69,13 +66,13 @@ sub notify_status {
 
     if(defined $self->{_unix_socket}) {
         Notify::Logger->write('Listening at socket '
-            . $self->{_options}->{socket} 
+            . $self->{_options}->{socket}
         );
     }
 
     if(defined $self->{_inet_socket}) {
         Notify::Logger->write('Listening at address '
-            . $self->{_options}->{bind_address} 
+            . $self->{_options}->{bind_address}
             . ':' . $self->{_options}->{port}
         );
     }
@@ -86,7 +83,6 @@ sub notify_status {
 
 sub delete_socket {
     my $self = shift;
-
     unlink $self->{_options}->{socket};
 }
 

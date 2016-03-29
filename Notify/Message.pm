@@ -76,26 +76,20 @@ sub body {
     }
 }
 
-sub to_hmac {
+sub generate_hmac {
     my ($self, $message) = @_;
 
-    my $key_handle = IO::File->new(Notify::Config->get('key_path'), 'r');
     my $key_data = undef;
-
+    my $key_handle = IO::File->new(Notify::Config->get('key_path'), 'r');
     if(defined $key_handle) {
         $key_data = <$key_handle>;
     }
     else {
-        die 'Error: No key found at specified path.';
+        die 'no key found at specified path';
     }
 
     my $key = sha1_hex($key_data, 'sha256');
-
-    my $hmac = Digest::HMAC->new(
-        $key,
-        'Digest::SHA'
-    );
-
+    my $hmac = Digest::HMAC->new($key, 'Digest::SHA');
     $hmac->add($message);
 
     return $hmac->digest;
@@ -105,7 +99,7 @@ sub encode {
     my $self = shift;
     my $json = JSON->new->convert_blessed(1)->encode($self);
 
-    return $json . "\t" . $self->to_hmac($json) . "\n";
+    return $json . "\t" . $self->generate_hmac($json) . "\n";
 }
 
 sub from_handle {
@@ -130,8 +124,7 @@ sub parse {
     my ($class, $encoded) = @_;
     my ($json, $recieved_hmac) = split("\t", $encoded, 2);
 
-    my $digest = $class->to_hmac($json);
-
+    my $digest = $class->generate_hmac($json);
     if($digest ne $recieved_hmac) {
         return $class->new(CMD_AUTH_FAILURE);
     }
@@ -144,14 +137,16 @@ sub parse {
     if($message->command eq $class->CMD_NOTIF) {
         $message->{_body} =
             Notify::Notification->create_from_decoded_json($decoded->{body});
-    } elsif($message->command eq $class->CMD_DISPATCH) {
+    }
+    elsif($message->command eq $class->CMD_DISPATCH) {
         $message->{_body} = [];
         foreach my $decoded_notification (@{$decoded->{body}}) {
             push @{$message->{_body}},
             Notify::Notification->create_from_decoded_json(
                 $decoded_notification);
         }
-    } else {
+    }
+    else {
         $message->{_body} = $decoded->{body};
     }
 

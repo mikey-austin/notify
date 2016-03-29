@@ -44,7 +44,6 @@ sub new {
 sub add_handles {
     my ($self, $select) = @_;
 
-
     $select->add($self->{_unix_socket});
     if(defined $self->{_inet_socket}) {
         $select->add($self->{_inet_socket})

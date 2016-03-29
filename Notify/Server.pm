@@ -41,7 +41,7 @@ use constant {
         '/etc/notify/notify.yaml',
         ]
 };
-
+v
 sub new {
     my ($class, $options) = @_;
     my $self = {
@@ -96,7 +96,7 @@ sub start {
     $self->register_signals;
 
     # Create the sockets object.
-    my $sockets = Notify::Socket::SocketServer->new($self->{_options}) 
+    my $sockets = Notify::Socket::SocketServer->new($self->{_options})
         or die 'Could not initialize socket:\n$!\n';
 
     # Add the file handles to the selector.
@@ -119,10 +119,10 @@ sub start {
                     #
                     # This is a connection ready for reading.
                     #
-                    
+
                     # For debug.
                     # log_message_protocol($handle);
- 
+
                     my $response;
                     if(my $message = Notify::Message->from_handle($handle)) {
                         if($message->command eq $message->CMD_NOTIF) {
@@ -273,7 +273,7 @@ sub list_queued {
     my @messages;
 
     $self->{_queue}->walk_queue(sub {
-        push @messages, shift; 
+        push @messages, shift;
     });
 
     Notify::Logger->write("From server: " . \@messages);
@@ -489,7 +489,7 @@ sub log_message_protocol {
     elsif($handle->protocol == 0) {
         $message_origin = "UNIX.";
     }
-    
+
     Notify::Logger->write(
         'Message received from: ' . $message_origin
     );
@@ -499,10 +499,10 @@ sub store_queue {
     my $self = shift;
 
     my $db_name = Notify::Config->get('db_name');
-    my $dbh = DBI->connect(          
-      "dbi:SQLite:dbname=$db_name", 
-      "",                          
-      "",                          
+    my $dbh = DBI->connect(
+      "dbi:SQLite:dbname=$db_name",
+      "",
+      "",
     ) or Notify::Logger->write($DBI::errstr);
 
     $dbh->do("DROP TABLE IF EXISTS Notifications");
