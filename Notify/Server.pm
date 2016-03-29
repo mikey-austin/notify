@@ -29,7 +29,7 @@ use Notify::Sender;
 use Notify::Socket;
 use Notify::Suspend;
 use Notify::ProviderFactory;
-use Notify::Socket::SocketServer;
+use Notify::Socket::Server;
 use IO::Select;
 use IO::Handle;
 use DBI;
@@ -96,7 +96,7 @@ sub start {
     $self->register_signals;
 
     # Create the sockets object.
-    my $sockets = Notify::Socket::SocketServer->new($self->{_options})
+    my $sockets = Notify::Socket::Server->new($self->{_options})
         or die 'Could not initialize socket:\n$!\n';
 
     # Add the file handles to the selector.

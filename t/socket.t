@@ -18,8 +18,8 @@
 
 
 use Test::Simple tests => 36;
-use Notify::Socket::SocketClient;
-use Notify::Socket::SocketServer;
+use Notify::Socket::Client;
+use Notify::Socket::Server;
 use Notify::Socket;
 use Notify::Message;
 use IO::Select;
@@ -43,9 +43,9 @@ Notify::Config->reload('t/config/config1.yaml');
 # Server socket testing:
 #
 
-# Method call notify_status in SocketServer
+# Method call notify_status in Server
 # constructor must be commented out for testing.
-$server_socket = Notify::Socket::SocketServer->new($options);
+$server_socket = Notify::Socket::Server->new($options);
 ok($server_socket->{_options}->{socket} eq '/tmp/test.sock');
 ok($server_socket->{_options}->{bind_address} eq 'localhost');
 ok($server_socket->{_options}->{port} eq 9000);
@@ -64,7 +64,7 @@ ok(not defined $server_socket->get_pending_handle(1234));
 #
 # Client socket testing:
 #
-$client_socket = Notify::Socket::SocketClient->new($options);
+$client_socket = Notify::Socket::Client->new($options);
 ok($client_socket->{_options}->{socket} eq '/tmp/test.sock');
 ok($client_socket->{_options}->{bind_address} eq 'localhost');
 ok($client_socket->{_options}->{port} eq 9000);
@@ -127,12 +127,12 @@ $options = {
     socket => "/tmp/test.sock",
 };
 
-$server_socket = Notify::Socket::SocketServer->new($options);
+$server_socket = Notify::Socket::Server->new($options);
 ok($server_socket->{_options}->{socket} eq '/tmp/test.sock');
 ok(defined $server_socket->{_unix_socket});
 ok(not defined $server_socket->{_inet_socket});
 
-$client_socket = Notify::Socket::SocketClient->new($options);
+$client_socket = Notify::Socket::Client->new($options);
 ok($client_socket->{_options}->{socket} eq '/tmp/test.sock');
 ok(defined $client_socket->{_unix_socket});
 ok(not defined $client_socket->{_inet_socket});

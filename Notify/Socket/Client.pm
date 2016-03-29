@@ -17,7 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
-package Notify::Socket::SocketClient;
+package Notify::Socket::Client;
 
 use strict;
 use warnings;

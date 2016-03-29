@@ -28,7 +28,7 @@ use Notify::Config;
 use Notify::Message;
 use Notify::Logger;
 use Notify::RecipientFactory;
-use Notify::Socket::SocketClient;
+use Notify::Socket::Client;
 
 use constant {
     DEFAULTS => [
@@ -172,7 +172,7 @@ sub list_notifications {
     my $message = Notify::Message->new(Notify::Message->CMD_LIST);
 
     return $self->send($message);
-} 
+}
 
 #
 # Remove notifications in the queue. Matches commands on one or more of the --label,
@@ -194,7 +194,7 @@ sub remove {
     });
 
     return $self->send($message);
-} 
+}
 
 #
 # Send off a message to the server, and return the response
@@ -203,9 +203,9 @@ sub remove {
 sub send {
     my ($self, $message) = @_;
 
-    my $sockets = Notify::Socket::SocketClient->new($self->{_options})
+    my $sockets = Notify::Socket::Client->new($self->{_options})
         or die 'Could not initialize server: $! \n';
-    
+
     # Send message off.
     $sockets->send_message($message);
 
