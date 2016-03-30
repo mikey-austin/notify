@@ -34,11 +34,9 @@ use constant {
     DEFAULTS => [
         'notify.conf',
         'notify.yaml',
-        $ENV{'HOME'} . '/.notify.conf',
-        $ENV{'HOME'} . '/.notify.yaml',
+        "$ENV{'HOME'}/.notify.conf",
         '/etc/notify/notify.conf',
-        '/etc/notify/notify.yaml',
-        ]
+    ]
 };
 
 sub new {
@@ -60,10 +58,10 @@ sub set_options {
     # Initialise configuration.
     Notify::Config->reload($options->{config}, $self->DEFAULTS);
 
-    # Set a default socket path and host list if not specified.
+    # Set a default socket path and host/port if not specified.
     $self->{_options}->{$_} =
         $options->{$_} || Notify::Config->get($_)
-            for qw(socket hosts);
+            for qw(socket host port);
 
     $self->{_options}->{$_} = $options->{$_}
         for qw(label body subject minutes);
@@ -204,7 +202,7 @@ sub send {
     my ($self, $message) = @_;
 
     my $sockets = Notify::Socket::Client->new($self->{_options})
-        or die 'Could not initialize server: $! \n';
+        or die "Could not create socket: $!";
 
     # Send message off.
     $sockets->send_message($message);

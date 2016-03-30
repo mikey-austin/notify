@@ -277,7 +277,6 @@ sub list_queued {
         push @messages, shift;
     });
 
-    Notify::Logger->write("From server: " . \@messages);
     return \@messages;
 }
 

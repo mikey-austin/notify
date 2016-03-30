@@ -40,42 +40,17 @@ sub set_sockets {
 
     $self->{_unix_socket} = IO::Socket::UNIX->new(
         Peer => $self->{_options}->{socket},
-        Type => SOCK_STREAM,
-    ) or die 'Could not contact client socket at '
-      . $self->{_options}->{socket} . "\n$!\n";
+        Type => SOCK_STREAM
+    )
+    or die "Could not create unix socket: $!";
 
-    foreach my $host (@{$self->{_options}->{hosts}}) {
-        my ($address, $port) = split(':', $host);
-
-        # Validate the address.
-        if(not $address =~ /^(\d{1,4}\.){3}\d{1,3}$/) {
-            print 'Could not contact host at address '
-                . $host . ', invalid address.'
-                . "\n";
-            next;
-        }
-
-        # Validate the port.
-        if(not $port =~  m/^[0-9]{1,5}$/) {
-            print 'Could not contact host at address '
-                . $host . ', invalid port number.'
-                . "\n";
-            next;
-        }
-
+    if(defined $self->{_options}->{host} and defined $self->{_options}->{port}) {
         $self->{_inet_socket} = IO::Socket::INET->new(
-                PeerAddr => $address,
-                PeerPort => $port,
-                Proto    => 'tcp',
-                Type     => SOCK_STREAM,
-        ) or print 'Could not contact host at address '
-            . $host . ', no response.'
-            . "\n";
-
-        if(defined $self->{_inet_socket}) {
-            print 'Connected to host at ' . $host ."\n";
-            last;
-        }
+            PeerAddr => $self->{_options}->{host},
+            PeerPort => $self->{_options}->{port},
+            Proto    => 'tcp',
+            Type     => SOCK_STREAM,
+        );
     }
 }
 
@@ -91,7 +66,6 @@ sub send_message {
     else {
         print {$self->{_unix_socket}} $message->encode
             or die "Could not send message to socket.\n";
-        print "Sent message to socket.\n";
     }
 }
 
@@ -115,11 +89,7 @@ sub get_response {
     die 'could not recieve message from server'
         if not defined $response;
 
-    #
-    # Response will only have this command if from invalid
-    # server, not a response citing an invalid key from the client.
-    #
-    $response->{_body} = 'Recieved reply from untrusted server.'
+    $response->{_body} = 'client packet authentication failure'
         if $response->{_command} eq Notify::Message->CMD_AUTH_FAILURE;
 
     return $response;

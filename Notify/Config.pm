@@ -38,15 +38,13 @@ sub new {
     # Return singleton.
     return $instance if defined $instance;
 
-    # Default to an empty array if not defined.
-    $defaults ||= ['/home/luther/.notify.conf'];
-
     #
     # If no config file is specified, load the first
     # default that exists.
     #
     for(my $i = (defined $config_file ? -1 : 0);
-        $i < @{$defaults} and not defined $config; $i++)
+        $i < @{$defaults} and not defined $config;
+        $i++)
     {
         $config_file = $defaults->[$i] if $i >= 0;
         eval {

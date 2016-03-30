@@ -92,7 +92,7 @@ sub generate_hmac {
     my $hmac = Digest::HMAC->new($key, 'Digest::SHA');
     $hmac->add($message);
 
-    return $hmac->digest;
+    return $hmac->hexdigest;
 }
 
 sub encode {

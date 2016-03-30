@@ -100,7 +100,7 @@ path to socket
 
 =item --host=C<address>
 
-address on which to bind
+address to which to connect
 
 =item --port=C<port>
 
