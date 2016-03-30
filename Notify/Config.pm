@@ -33,10 +33,12 @@ my $instance = undef;
 
 sub new {
     my ($class, $config_file, $defaults) = @_;
-    my $config;
 
     # Return singleton.
     return $instance if defined $instance;
+
+    my $config;
+    $defaults ||= [];
 
     #
     # If no config file is specified, load the first

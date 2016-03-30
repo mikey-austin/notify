@@ -22,7 +22,7 @@ use Notify::Config;
 use Notify::ProviderFactory;
 
 # Use the test configuration.
-Notify::Config->new('t/config/providers.yaml');
+Notify::Config->reload('t/config/providers.yaml');
 
 $active = Notify::ProviderFactory->get_email_providers;
 ok(@{$active} == 2);

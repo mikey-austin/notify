@@ -50,7 +50,8 @@ sub set_sockets {
             PeerPort => $self->{_options}->{port},
             Proto    => 'tcp',
             Type     => SOCK_STREAM,
-        );
+        )
+        or warn "Could not connect to $self->{_options}->{host}:$self->{_options}->{port}; $!\n";
     }
 }
 
