@@ -23,7 +23,6 @@ use strict;
 use warnings;
 use base qw(Notify::Client);
 
-use Data::Dumper;
 
 #
 # Output a response based on the context of this client.
@@ -33,9 +32,18 @@ sub output {
 
     return if not defined $response;
 
-    print_response($response->body);
+    print_response($response->body) if ref $response;
 }
 
+sub list_notifications {
+    my $self = shift;
+    my $message = $self->SUPER::list_notifications;
+
+    my $notifications = $message->body;
+    foreach my $n (@$notifications) {
+        print "$n->{recipient}->{label}|$n->{subject}|$n->{body}\n";
+    }
+}
 
 #
 # Pretty print the data structure of the response.
@@ -52,7 +60,7 @@ sub print_response {
         foreach my $key (keys %{$response}) {
             print "$key: ";
             print_response($response->{$key})
-        } 
+        }
 
     } else {
         print $response, "\n";
