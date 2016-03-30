@@ -199,7 +199,7 @@ sub start {
                                 $message->CMD_RESPONSE, $self->remove($message->body));
                         }
                         elsif($message->command eq $message->CMD_AUTH_FAILURE) {
-                            Notify::Logger->err('Recieved message from untrusted source');
+                            Notify::Logger->err('Could not authenticate received message');
                             $response = $self->new_message(
                                 $message->CMD_RESPONSE, 'ERR: failed server authentication');
                             $response->{_error} = 1;

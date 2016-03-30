@@ -99,7 +99,7 @@ sub encode {
     my $self = shift;
     my $json = JSON->new->convert_blessed(1)->encode($self);
 
-    return $json . "\t" . $self->generate_hmac($json) . "\n";
+    return $json . "|" . $self->generate_hmac($json) . "\n";
 }
 
 sub from_handle {
@@ -122,10 +122,13 @@ sub from_handle {
 #
 sub parse {
     my ($class, $encoded) = @_;
-    my ($json, $recieved_hmac) = split("\t", $encoded, 2);
+
+    # Remove carriage returns.
+    $encoded =~ s/\r//g;
+    my ($json, $received_hmac) = split(/\|/, $encoded, 2);
 
     my $digest = $class->generate_hmac($json);
-    if($digest ne $recieved_hmac) {
+    if(not defined $received_hmac or $digest ne $received_hmac) {
         return $class->new(CMD_AUTH_FAILURE);
     }
 
