@@ -29,6 +29,8 @@ my $options = {
     group       => undef,
     pidfile     => undef,
     config      => undef,
+    host        => undef,
+    port        => undef,
 };
 
 my $help = 0;
@@ -42,6 +44,8 @@ GetOptions(
     "pidfile=s"                  => \$options->{pidfile},
     "config=s"                   => \$options->{config},
     "help"                       => \$help,
+    "port=s"                     => \$options->{port},
+    "host=s"                     => \$options->{host},
     "version"                    => \$version)
     or pod2usage(1) and die("Error in command line arguments\n");
 
@@ -55,7 +59,11 @@ if($help) {
 }
 
 my $server = Notify::Server->new($options);
-$server->start;
+eval {
+    $server->start;
+};
+
+$server->shutdown($@) if $@;
 
 __END__
 =head1 notify
@@ -71,7 +79,7 @@ notify - Notification throttling daemon
     --user=<user>                 user to setuid to
     --group=<group>               group to setgid to
     --socket=<socket>             path to socket
-    --bind-address=<bind_address> bind address
+    --host=<host>                 host on which to bind
     --port=<port>                 port number
     --pidfile=<pidfile>           location of the pidfile
     --config=<config>             path to configuration file

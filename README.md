@@ -52,7 +52,7 @@ and similarly for the client:
 
     $ notifyctl enable --socket /tmp/test.sock
     OK: notifications enabled
-  
+
     $ notifyctl queue --socket /tmp/test.sock --recipient 61411221234 --subject "alert!" --body "alert alert"
     OK: 1 queued
 
@@ -72,15 +72,20 @@ To run notify you will need to install the following CPAN modules:
 - YAML::XS
 - JSON
 - Module::Load
-- Regexp::Common
 - Digest::HMAC
-- DBD::SQLite
 
 SMS Gateway Providers
 ---------------------
 
-Currently there are two reference provider implementations for email and SMS dispatch. The SMS gateway
-implemented is that of Esendex (no affiliation). To implement another SMS provider, you can:
+Currently there are two reference provider implementations for email and SMS dispatch. There are currently SMS drivers for the following services:
+
+- Burst SMS
+- Esendex
+- SMS Broadcast
+- SMS Global
+- Twilio
+
+To implement another SMS provider, you can:
 
 1.  Implement a package extending the Notify::Provider class, in the Notify::SMS namespace (eg Notify::SMS::NewProvider)
 2.  Implement the *send* method according to the provider's specifics

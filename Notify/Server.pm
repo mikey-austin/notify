@@ -39,9 +39,10 @@ use constant {
     DEFAULTS => [
         '/etc/notify/notify.conf',
         '/etc/notify/notify.yaml',
-        ]
+        $ENV{'HOME'} . '/.notify.conf',
+    ]
 };
-v
+
 sub new {
     my ($class, $options) = @_;
     my $self = {
@@ -61,10 +62,10 @@ sub new {
 
     $self->{_options}->{$_} =
         $options->{$_} || Notify::Config->get($_)
-            for qw(socket bind_address port pidfile);
+            for qw(socket host port pidfile);
 
     Notify::Config->set($_, $self->{_options}->{$_})
-        for qw(socket bind_address port pidfile);
+        for qw(host port socket pidfile);
 
     # Set remaining options.
     $self->{_options}->{$_} = $options->{$_} for qw|daemonize user group config|;
@@ -468,14 +469,19 @@ sub register_signals {
 }
 
 sub shutdown {
-    my $self = shift;
+    my ($self, $error) = @_;
 
-    Notify::Logger->write("Shutting down notify $$...");
-    $self->store_queue;
+    if(defined $error) {
+        Notify::Logger->write("Error encountered: $error");
+    }
+    else {
+        Notify::Logger->write("Shutting down notify $$...");
+    }
     $self->stop_sender;
     $self->stop_suspend;
 
     unlink(Notify::Config->get('socket')) if -e Notify::Config->get('socket');
+    unlink(Notify::Config->get('pidfile')) if -e Notify::Config->get('pidfile');
 }
 
 sub log_message_protocol {
@@ -493,26 +499,6 @@ sub log_message_protocol {
     Notify::Logger->write(
         'Message received from: ' . $message_origin
     );
-}
-
-sub store_queue {
-    my $self = shift;
-
-    my $db_name = Notify::Config->get('db_name');
-    my $dbh = DBI->connect(
-      "dbi:SQLite:dbname=$db_name",
-      "",
-      "",
-    ) or Notify::Logger->write($DBI::errstr);
-
-    $dbh->do("DROP TABLE IF EXISTS Notifications");
-    $dbh->do("CREATE TABLE Notifications(Id INT PRIMARY KEY, body TEXT)");
-    #foreach my $notification ($self->{_queue}->dequeue) {
-        #Notify::Logger->write($notification);
-        #$dbh->do("INSERT INTO Notifications VALUES($notification)");
-        #}
-
-    $dbh->disconnect();
 }
 
 1;

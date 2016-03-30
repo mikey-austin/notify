@@ -24,15 +24,15 @@ use Getopt::Long;
 use Pod::Usage;
 
 my $options = {
-    command       => undef,
-    label         => undef,
-    body          => undef,
-    subject       => undef,
-    socket        => undef,
-    bind_address  => undef,
-    port          => undef,
-    config        => undef,
-    minutes       => undef,
+    command => undef,
+    label   => undef,
+    body    => undef,
+    subject => undef,
+    socket  => undef,
+    host    => undef,
+    port    => undef,
+    config  => undef,
+    minutes => undef,
 };
 
 my $help = 0;
@@ -43,7 +43,7 @@ GetOptions(
     "body=s"            => \$options->{body},
     "subject=s"         => \$options->{subject},
     "socket=s"          => \$options->{socket},
-    "bind_address=s"    => \$options->{bind_address},
+    "host=s"            => \$options->{host},
     "port=s"            => \$options->{port},
     "config=s"          => \$options->{config},
     "minutes=s"         => \$options->{minutes},
@@ -98,9 +98,9 @@ notification subject
 
 path to socket
 
-=item --bind_address=C<address>
+=item --host=C<address>
 
-bind address
+address on which to bind
 
 =item --port=C<port>
 

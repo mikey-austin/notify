@@ -26,10 +26,10 @@ use IO::Select;
 use Data::Dumper;
 
 $options = {
-    socket        => "/tmp/test.sock",
-    bind_address  => "localhost",
-    port          => 9000,
-    hosts         => [
+    socket => "/tmp/test.sock",
+    host   => "localhost",
+    port   => 9000,
+    hosts  => [
         '127.0.0.1:9000',
         '127.0.0.1:9001',
         '127.0.0.1:9002',
@@ -47,7 +47,7 @@ Notify::Config->reload('t/config/config1.yaml');
 # constructor must be commented out for testing.
 $server_socket = Notify::Socket::Server->new($options);
 ok($server_socket->{_options}->{socket} eq '/tmp/test.sock');
-ok($server_socket->{_options}->{bind_address} eq 'localhost');
+ok($server_socket->{_options}->{host} eq 'localhost');
 ok($server_socket->{_options}->{port} eq 9000);
 ok(defined $server_socket->{_unix_socket});
 ok(defined $server_socket->{_inet_socket});
@@ -66,7 +66,7 @@ ok(not defined $server_socket->get_pending_handle(1234));
 #
 $client_socket = Notify::Socket::Client->new($options);
 ok($client_socket->{_options}->{socket} eq '/tmp/test.sock');
-ok($client_socket->{_options}->{bind_address} eq 'localhost');
+ok($client_socket->{_options}->{host} eq 'localhost');
 ok($client_socket->{_options}->{port} eq 9000);
 ok(defined $client_socket->{_unix_socket});
 ok(defined $client_socket->{_inet_socket});

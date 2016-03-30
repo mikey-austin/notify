@@ -23,6 +23,7 @@ use strict;
 use warnings;
 use IO::Socket::UNIX;
 use IO::Socket::INET;
+use Notify::Logger;
 use parent qw(Notify::Socket);
 
 sub new {
@@ -44,20 +45,25 @@ sub set_sockets {
     ) or die 'Could not initialize socket at '
       . $self->{_options}->{socket} . "\n$!\n";
 
-    if(defined $self->{_options}->{bind_address}
+    Notify::Logger->write("Listening on $self->{_options}->{socket}");
+
+    if(defined $self->{_options}->{host}
         and defined $self->{_options}->{port})
     {
         $self->{_inet_socket} = IO::Socket::INET->new(
-            LocalAddr => $self->{_options}->{bind_address},
+            LocalAddr => $self->{_options}->{host},
             LocalPort => $self->{_options}->{port},
             Proto     => 'tcp',
             ReuseAddr => 1,
             Type      => SOCK_STREAM,
         ) or die 'Could not bind at address '
-            . $self->{_options}->{bind_address}
-            . ':' . $self->{_options}->{port} . "\n$!\n";
+            . $self->{_options}->{host}
+            . ':' . $self->{_options}->{port} . ": $!\n";
 
         $self->{_inet_socket}->listen(5);
+
+        Notify::Logger->write(
+            "Listening on $self->{_options}->{host}:$self->{_options}->{port}");
     }
 }
 
@@ -72,7 +78,7 @@ sub notify_status {
 
     if(defined $self->{_inet_socket}) {
         Notify::Logger->write('Listening at address '
-            . $self->{_options}->{bind_address}
+            . $self->{_options}->{host}
             . ':' . $self->{_options}->{port}
         );
     }
