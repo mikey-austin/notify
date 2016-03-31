@@ -23,10 +23,12 @@ use strict;
 use warnings;
 use Notify::Logger;
 use Notify::RecipientFactory;
+use Time::Piece;
 
 sub new {
     my ($class, $recipient, $body, $subject) = @_;
     my $self = {
+        _time      => time,
         _recipient => $recipient,
         _body      => $body,
         _subject   => $subject,
@@ -47,6 +49,16 @@ sub get_subject {
     shift->{_subject};
 }
 
+sub get_time {
+    shift->{_time};
+}
+
+sub get_human_time {
+    my $self = shift;
+    my $t = Time::Piece->strptime($self->{_time}, '%s');
+    $t->cdate;
+}
+
 sub send {
     my $self = shift;
     Notify::Logger->write("Sending notification to "
@@ -62,7 +74,7 @@ sub create_from_decoded_json {
         ),
         $decoded->{body},
         $decoded->{subject},
-        );
+    );
 
     return $self;
 }
@@ -73,6 +85,7 @@ sub TO_JSON {
         recipient => $self->{_recipient},
         body      => $self->{_body},
         subject   => $self->{_subject},
+        time      => $self->{_time},
     };
 
     return $output;
@@ -80,20 +93,19 @@ sub TO_JSON {
 
 sub matches {
     my ($self, $other) = @_;
-   
+
     my $criteria = {
-        "_label"    => $self->{_recipient}->{_label},
-        "_subject"  => $self->{_subject},
-        "_body"     => $self->{_body},
+        _label   => $self->{_recipient}->{_label},
+        _subject => $self->{_subject},
+        _body    => $self->{_body},
     };
 
     foreach my $key (keys %$criteria) {
-        return 0
-            if(defined $other->{$key}
-                && $criteria->{$key} ne $other->{$key});
+        return 0 if defined $other->{$key}
+            and $criteria->{$key} ne $other->{$key};
     }
 
-    return 1; 
+    return 1;
 }
 
 1;

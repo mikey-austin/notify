@@ -40,8 +40,8 @@ sub list_notifications {
     my $message = $self->SUPER::list_notifications;
 
     my $notifications = $message->body;
-    foreach my $n (@$notifications) {
-        print "$n->{recipient}->{label}|$n->{subject}|$n->{body}\n";
+    foreach my $n (sort { $b->{time} <=> $a->{time} } @$notifications) {
+        print "$n->{time}|$n->{recipient}->{label}|$n->{subject}|$n->{body}\n";
     }
 }
 
