@@ -1,0 +1,203 @@
+#!/usr/bin/perl 
+
+eval 'exec /usr/bin/perl  -S $0 ${1+"$@"}'
+    if 0; # not running under some shell
+#
+# Copyright (C) 2014  Mikey Austin <mikey@jackiemclean.net>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+use strict;
+use warnings;
+use Notify::Client::Console;
+use Notify::Config;
+use Getopt::Long;
+use Pod::Usage;
+
+my $options = {
+    command => undef,
+    label   => undef,
+    body    => undef,
+    subject => undef,
+    socket  => undef,
+    host    => undef,
+    port    => undef,
+    config  => undef,
+    minutes => undef,
+};
+
+my $help = 0;
+my $version = 0;
+
+GetOptions(
+    "label|recipient=s" => \$options->{label},
+    "body=s"            => \$options->{body},
+    "subject=s"         => \$options->{subject},
+    "socket=s"          => \$options->{socket},
+    "host=s"            => \$options->{host},
+    "port=s"            => \$options->{port},
+    "config=s"          => \$options->{config},
+    "minutes=s"         => \$options->{minutes},
+    "help"              => \$help,
+    "version"           => \$version)
+    or pod2usage(1) and die("Error in command line arguments\n");
+
+if($version) {
+    print Notify::Config->name, ' version ', Notify::Config->version, "\n\n";
+    pod2usage(1);
+}
+
+pod2usage(1) if $help;
+
+my $client = Notify::Client::Console->new($options);
+
+eval {
+    $client->execute($ARGV[0]);
+};
+
+if($@) {
+    print "Error:\n\t$@\n";
+    pod2usage(1);
+}
+
+__END__
+=head1 notifyctl
+
+notify - Notification throttling daemon control
+
+=head1 SYNOPSIS
+
+notifyctl <command> [options]
+
+=head2 Options:
+
+=over 15
+
+=item --label=C<label>
+
+recipient label
+
+=item --body=C<body>
+
+notification body
+
+=item --subject=C<sub>
+
+notification subject
+
+=item --socket=C<path>
+
+path to socket
+
+=item --host=C<address>
+
+address to which to connect
+
+=item --port=C<port>
+
+port number
+
+=item --minutes=C<minutes>
+
+minutes to suspend for
+
+=item --config=C<config>
+
+path to configuration file
+
+=item --help
+
+print help and exit
+
+=item --version
+
+print version and exit
+
+=back
+
+=head2 Commands:
+
+queue, status, empty, enable, disable, suspend, list, remove
+
+=head1 DESCRIPTION
+
+This program controls the notify notification throttling daemon by
+sending it commands over the specified socket.
+
+=head1 COMMANDS
+
+The following commands are currently defined:
+
+=over 20
+
+=item C<queue>
+
+Enqueue a notification in the daemon. This command requires the --label,
+--subject and --body options.
+
+=item C<empty>
+
+Empty the queued notifications on the server.
+
+=item C<status>
+
+Request status information from the notification daemon.
+
+=item C<enable>
+
+Enable the dispatch of notifications on the daemon.
+
+=item C<disable>
+
+Disable the dispatch of notifications on the daemon.
+
+=item C<suspend>
+
+Temporarily disable the sending of notifications for a specified number of minutes. This command requires the --minutes option.
+
+=item C<list>
+
+List the queued notifications.
+
+=item C<remove>
+
+Remove notifications in the queue. Matches commands on one or more of the --label,
+--subject and --body options.
+
+=back
+
+=head1 AUTHOR
+
+Mikey Austin, E<lt>mikey@jackiemclean.netE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2014  Mikey Austin <mikey@jackiemclean.net>
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along
+with this program; if not, write to the Free Software Foundation, Inc.,
+51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+=cut

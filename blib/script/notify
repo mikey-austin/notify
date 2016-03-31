@@ -1,0 +1,128 @@
+#!/usr/bin/perl -w
+
+eval 'exec /usr/bin/perl -w -S $0 ${1+"$@"}'
+    if 0; # not running under some shell
+#
+# Copyright (C) 2014  Mikey Austin <mikey@jackiemclean.net>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+use strict;
+use warnings;
+use Notify::Server;
+use Getopt::Long;
+use Pod::Usage;
+
+my $options = {
+    socket      => undef,
+    daemonize   => 0,
+    user        => undef,
+    group       => undef,
+    pidfile     => undef,
+    config      => undef,
+    host        => undef,
+    port        => undef,
+};
+
+my $help = 0;
+my $version = 0;
+
+GetOptions(
+    "daemonize|daemon|daemonise" => \$options->{daemonize},
+    "socket=s"                   => \$options->{socket},
+    "user=s"                     => \$options->{user},
+    "group=s"                    => \$options->{group},
+    "pidfile=s"                  => \$options->{pidfile},
+    "config=s"                   => \$options->{config},
+    "help"                       => \$help,
+    "port=s"                     => \$options->{port},
+    "host=s"                     => \$options->{host},
+    "version"                    => \$version)
+    or pod2usage(1) and die("Error in command line arguments\n");
+
+if($version) {
+    print Notify::Config->name, ' version ', Notify::Config->version, "\n\n";
+    pod2usage(1);
+}
+
+if($help) {
+    pod2usage(1);
+}
+
+my $server = Notify::Server->new($options);
+eval {
+    $server->start;
+};
+
+$server->shutdown($@) if $@;
+
+__END__
+=head1 notify
+
+notify - Notification throttling daemon
+
+=head1 SYNOPSIS
+
+  notify [options]
+
+  Options:
+    --daemon                      start as a daemon
+    --user=<user>                 user to setuid to
+    --group=<group>               group to setgid to
+    --socket=<socket>             path to socket
+    --host=<host>                 host on which to bind
+    --port=<port>                 port number
+    --pidfile=<pidfile>           location of the pidfile
+    --config=<config>             path to configuration file
+    --help                        print help and exit
+    --version                     print version and exit
+
+=head1 DESCRIPTION
+
+This program starts a server that listens on a unix socket and accepts
+JSON encoded messages containing notifications (eg SMSes) for dispatch.
+
+On startup, the server forks a dedicated sender process to periodically
+request notifications for sending from the parent process's queue,
+essentially rate-limiting the sending.
+
+=head1 SIGNALS
+
+The notify daemon will catch the HUP signal, reload the configuration
+that the daemon was started with, and restarts the sender processes.
+
+=head1 AUTHOR
+
+Mikey Austin, E<lt>mikey@ayuda.com.auE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2014  Mikey Austin <mikey@jackiemclean.net>
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along
+with this program; if not, write to the Free Software Foundation, Inc.,
+51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+=cut

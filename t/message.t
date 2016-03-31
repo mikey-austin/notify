@@ -40,7 +40,7 @@ $message->body($n);
 
 $json = '{"error":0,"command":"NOTIFICATION","body":{"recipient":{"label":"0412341234"},"body":"test","subject":"test subject"}}';
 
-$raw_message = $json . "\t" . Notify::Message->generate_hmac($json);
+$raw_message = $json . '|' . Notify::Message->generate_hmac($json);
 
 #
 # Test parsing a message.
@@ -56,7 +56,7 @@ ok($message->body->get_subject eq $subject);
 # Test dispatch message parsing.
 #
 $json = '{"error":0,"body":[{"body":"test","recipient":{"label":"0412341234"}},{"recipient":{"label":"0412341234"},"body":"test"}],"command":"DISPATCH"}';
-$raw_message = $json . "\t" . Notify::Message->generate_hmac($json);
+$raw_message = $json . '|' . Notify::Message->generate_hmac($json);
 $message = Notify::Message->parse($raw_message);
 ok($message->command eq Notify::Message->CMD_DISPATCH);
 ok(ref $message->body eq 'ARRAY');

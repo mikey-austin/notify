@@ -1,0 +1,13 @@
+---
+abstract: 'Notification Throttling Daemon'
+author:
+  - unknown
+build_requires: {}
+dynamic_config: 0
+generated_by: 'Module::Build version 0.4214, CPAN::Meta::Converter version 2.150001'
+license: unknown
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: '1.4'
+name: notify
+version: '0.4'

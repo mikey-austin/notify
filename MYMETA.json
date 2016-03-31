@@ -1,0 +1,19 @@
+{
+   "abstract" : "Notification Throttling Daemon",
+   "author" : [
+      "unknown"
+   ],
+   "dynamic_config" : 0,
+   "generated_by" : "Module::Build version 0.4214",
+   "license" : [
+      "unknown"
+   ],
+   "meta-spec" : {
+      "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+      "version" : "2"
+   },
+   "name" : "notify",
+   "prereqs" : {},
+   "release_status" : "stable",
+   "version" : "0.4"
+}
