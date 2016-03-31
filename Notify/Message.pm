@@ -43,6 +43,9 @@ use constant {
     CMD_REMOVE        => 'REMOVE',
 };
 
+# Hold key instance in memory.
+my $message_key = undef;
+
 sub new {
     my ($class, $command) = @_;
     my $self = {
@@ -76,20 +79,30 @@ sub body {
     }
 }
 
+sub get_key {
+    my $self = shift;
+
+    if(not defined $message_key) {
+        my $key_data = undef;
+        my $key_handle = IO::File->new(Notify::Config->get('key_path'), 'r');
+
+        if(defined $key_handle) {
+            $key_data = <$key_handle>;
+        }
+        else {
+            die 'no key found at specified path';
+        }
+
+        $message_key = sha1_hex($key_data, 'sha256');
+    }
+
+    return $message_key;
+}
+
 sub generate_hmac {
     my ($self, $message) = @_;
 
-    my $key_data = undef;
-    my $key_handle = IO::File->new(Notify::Config->get('key_path'), 'r');
-    if(defined $key_handle) {
-        $key_data = <$key_handle>;
-    }
-    else {
-        die 'no key found at specified path';
-    }
-
-    my $key = sha1_hex($key_data, 'sha256');
-    my $hmac = Digest::HMAC->new($key, 'Digest::SHA');
+    my $hmac = Digest::HMAC->new($self->get_key, 'Digest::SHA');
     $hmac->add($message);
 
     return $hmac->hexdigest;
