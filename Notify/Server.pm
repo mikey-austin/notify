@@ -29,6 +29,7 @@ use Notify::Sender;
 use Notify::Socket;
 use Notify::Suspend;
 use Notify::ProviderFactory;
+use Notify::StorageFactory;
 use Notify::Socket::Server;
 use IO::Select;
 use IO::Handle;
@@ -46,7 +47,7 @@ use constant {
 sub new {
     my ($class, $options) = @_;
     my $self = {
-        _queue       => Notify::Queue->new,
+        _queue       => undef,
         _sender_pid  => undef,
         _suspend_pid => undef,
         _pid         => undef,
@@ -69,6 +70,9 @@ sub new {
 
     # Set remaining options.
     $self->{_options}->{$_} = $options->{$_} for qw|daemonize user group config|;
+
+    my $storage = Notify::StorageFactory->create;
+    $self->{_queue} = Notify::Queue->new($storage);
 
     bless $self, $class;
 }
@@ -287,7 +291,7 @@ sub remove {
         shift->matches($notification);
     });
 
-    return "$processed notifications matched.";
+    return "OK: $processed notifications deleted";
 }
 
 sub daemonize {
@@ -486,13 +490,13 @@ sub shutdown {
 sub log_message_protocol {
     my $handle = shift;
 
-    my $message_origin = "Unknown.";
+    my $message_origin = "Unknown";
 
     if($handle->protocol == 6) {
-        $message_origin = "TCP.";
+        $message_origin = "TCP";
     }
     elsif($handle->protocol == 0) {
-        $message_origin = "UNIX.";
+        $message_origin = "UNIX";
     }
 
     Notify::Logger->write(

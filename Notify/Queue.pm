@@ -23,12 +23,24 @@ use strict;
 use warnings;
 
 sub new {
-    my $class = shift;
+    my ($class, $storage) = @_;
     my $self = {
-        _notifications => {}
+        _notifications => {},
+        _storage       => $storage || undef,
     };
 
     bless $self, $class;
+    $self->_load;
+
+    return $self;
+}
+
+sub storage {
+    my ($self, $storage) = @_;
+
+    $self->{_storage} = $storage if defined $storage;
+
+    return $self->{_storage};
 }
 
 sub get_size {
@@ -48,9 +60,13 @@ sub enqueue {
 
     # A queue per recipient.
     push @{$self->{_notifications}->{$id}}, $notification;
+
+    $self->_sync;
 }
 
+#
 # Return an array of popped notifications from each recipient queue.
+#
 sub dequeue {
     my $self = shift;
     my @popped;
@@ -59,6 +75,7 @@ sub dequeue {
         my $n = pop @{$self->{_notifications}->{$id}};
         push @popped, $n if defined $n;
     }
+    $self->_sync;
 
     return \@popped;
 }
@@ -90,6 +107,7 @@ sub delete {
 
         $num_deleted += ($orig_num - @{$self->{_notifications}->{$id}});
     }
+    $self->_sync;
 
     return $num_deleted;
 }
@@ -97,6 +115,21 @@ sub delete {
 sub empty {
     my $self = shift;
     $self->{_notifications} = {};
+    $self->_sync;
+}
+
+sub _sync {
+    my $self = shift;
+    return if not defined $self->{_storage};
+
+    $self->{_storage}->store($self->{_notifications});
+}
+
+sub _load {
+    my $self = shift;
+    return if not defined $self->{_storage};
+
+    $self->{_notifications} = $self->{_storage}->retrieve || {};
 }
 
 1;
