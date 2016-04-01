@@ -63,7 +63,9 @@ sub dequeue {
     return \@popped;
 }
 
+#
 # Runs a subroutine over the notifications in the queue.
+#
 sub walk_queue {
     my ($self, $sub) = @_;
 
@@ -71,26 +73,25 @@ sub walk_queue {
         for keys %{$self->{_notifications}};
 }
 
-# Deletes notifications satisfying the passed subroutine ie subroutine returns true.
+#
+# Delete notifications satisfying the passed closure
+# (ie the subroutine returns true), and return the number of
+# items deleted.
+#
 sub delete {
     my ($self, $sub) = @_;
-    my $counter = 0;
-    
+    my $num_deleted = 0;
+
     foreach my $id (keys %{$self->{_notifications}}) {
-        my @indices;
+        my $orig_num = @{$self->{_notifications}->{$id}};
 
-        for my $i (0 .. $#{$self->{_notifications}->{$id}}) { 
-            if($sub->(@{$self->{_notifications}->{$id}}[$i])) { 
-                push @indices, $i;
-            }
-        }
-        splice @{$self->{_notifications}->{$id}}, $_, 1
-            for @indices;
+        @{$self->{_notifications}->{$id}} =
+            grep { not $sub->($_) } @{$self->{_notifications}->{$id}};
 
-        $counter += @indices;
+        $num_deleted += ($orig_num - @{$self->{_notifications}->{$id}});
     }
 
-    return $counter;
+    return $num_deleted;
 }
 
 sub empty {

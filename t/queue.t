@@ -17,7 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
-use Test::Simple tests => 5;
+use Test::Simple tests => 8;
 use Notify::Notification;
 use Notify::Queue;
 
@@ -25,10 +25,10 @@ $q = Notify::Queue->new;
 ok($q->get_size == 0);
 
 $r1 = Notify::RecipientFactory::create('0412341234');
-$n1 = Notify::Notification->new($r1, 'test');
+$n1 = Notify::Notification->new($r1, 'test', 'sub');
 
 $r2 = Notify::RecipientFactory::create('0412341235');
-$n2 = Notify::Notification->new($r2, 'test');
+$n2 = Notify::Notification->new($r2, 'test', 'sub');
 
 $q->enqueue($n1);
 ok($q->get_size == 1);
@@ -39,4 +39,18 @@ ok($q->get_size == 2);
 $popped = $q->dequeue;
 ok(@{$popped} == 2);
 
+ok($q->get_size == 0);
+
+$r3 = Notify::RecipientFactory::create('0413341335');
+$n3 = Notify::Notification->new($r3, 'test2', 'sub2');
+
+$q->enqueue($_) for ($n1, $n2, $n3);
+ok($q->get_size == 3);
+
+# Delete all notifications with the subject 'sub'.
+$q->delete(sub { shift->matches({ _subject => 'sub'}) });
+ok($q->get_size == 1);
+
+# Delete all notifications with the label 0413341335.
+$q->delete(sub { shift->matches({ _label => '0413341335'}) });
 ok($q->get_size == 0);
