@@ -35,11 +35,11 @@ sub new {
     # Set some getter/setters directly in symbol table.
     foreach my $var (qw/type options/) {
         no strict 'refs';
-        *$var = sub {
+        *{"$class::$var"} = sub {
             my ($self, $arg) = @_;
             $self->{"_$var"} = $arg if defined $arg;
             return $self->{"_$var"};
-        };
+        } if not defined *{"$class::$var"}{CODE};
     }
 
     return $self;

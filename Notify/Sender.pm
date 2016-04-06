@@ -25,16 +25,17 @@ use Notify::Config;
 use Notify::Message;
 use IO::Socket::UNIX;
 use Notify::Logger;
+use Notify::StorageFactory;
 
 sub new {
     my $class = shift;
     my $self = {
         _queue   => [],   # Queue of messages to be sent immediately.
         _to_send => 0,
+        _storage => Notify::StorageFactory->create('sender') || undef,
     };
 
     bless $self, $class;
-
 }
 
 sub start {
@@ -44,6 +45,9 @@ sub start {
 
     Notify::Logger->write('Sender process started, sending every '
         . Notify::Config->get('sending_interval') . ' seconds');
+
+    # Load any queued notifications.
+    $self->_load;
 
     #
     # These signals are considered abnormal, so return an exit code
@@ -55,6 +59,14 @@ sub start {
     # We use the following signal to indicate an expected reload.
     #
     $SIG{'HUP'} = sub { exit(0); };
+
+    #
+    # Clear all queued notifications.
+    #
+    $SIG{'USR1'} = sub {
+        $self->{_queue} = [];
+        $self->_sync;
+    };
 
     do {
         my $parent = IO::Socket::UNIX->new(
@@ -78,23 +90,27 @@ sub start {
 
         # Close connection to parent.
         $parent->close;
+        $self->_sync;
 
         if(@{$self->{_queue}} > 0) {
             #
             # Send any queued messages before sleeping.
             #
+            my @failed;
+            my $status;
             while(my $notification = pop @{$self->{_queue}}) {
                 eval {
-                    $notification->send;
+                    $status = $notification->send;
                 };
 
-                if($@) {
+                if($@ || !$status) {
                     Notify::Logger->err($@);
+                    push @failed, $notification;
                 }
             }
 
-            # Empty the queue.
-            $self->{_queue} = [];
+            $self->{_queue} = \@failed;
+            $self->_sync;
         }
 
         #
@@ -104,6 +120,24 @@ sub start {
         sleep(Notify::Config->get('sending_interval'));
 
     } while(1); # Never return.
+}
+
+sub _sync {
+    my $self = shift;
+    return if not defined $self->{_storage};
+
+    $self->{_storage}->store($self->{_queue});
+}
+
+sub _load {
+    my $self = shift;
+    return if not defined $self->{_storage};
+
+    $self->{_queue} = $self->{_storage}->retrieve;
+    if(!$self->{_queue} or ref($self->{_queue}) ne 'ARRAY') {
+        $self->{_storage}->store([]);
+        $self->{_queue} = [];
+    }
 }
 
 1;

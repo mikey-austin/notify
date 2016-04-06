@@ -56,7 +56,8 @@ sub send {
 
         if($@ || !$sent) {
             $provider->err("sending failed, giving up on provider");
-        } elsif($sent) {
+        }
+        elsif($sent) {
             last;
         }
     }

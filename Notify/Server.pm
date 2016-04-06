@@ -124,10 +124,6 @@ sub start {
                     #
                     # This is a connection ready for reading.
                     #
-
-                    # For debug.
-                    # log_message_protocol($handle);
-
                     my $response;
                     if(my $message = Notify::Message->from_handle($handle)) {
                         if($message->command eq $message->CMD_NOTIF) {
@@ -146,6 +142,10 @@ sub start {
                         elsif($message->command eq $message->CMD_EMPTY_QUEUE) {
                             Notify::Logger->write('Queue Emptied');
                             $self->{_queue}->empty;
+
+                            # Signal the sender to clear queued messages.
+                            kill('USR1', $self->{_sender_pid})
+                                if defined $self->{_sender_pid};
 
                             $response = $self->new_message(
                                 $message->CMD_RESPONSE, 'OK: queue emptied');

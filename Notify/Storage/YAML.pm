@@ -55,7 +55,8 @@ sub retrieve {
     };
 
     if(not $loaded) {
-        Notify::Logger->err("Could not load YAML @{[$self->_get_path]}");
+        Notify::Logger->err(
+            "Could not load YAML @{[$self->_get_path]}");
     }
 
     return $loaded;
