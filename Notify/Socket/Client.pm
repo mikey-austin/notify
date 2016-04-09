@@ -38,12 +38,6 @@ sub new {
 sub set_sockets {
     my $self = shift;
 
-    $self->{_unix_socket} = IO::Socket::UNIX->new(
-        Peer => $self->{_options}->{socket},
-        Type => SOCK_STREAM
-    )
-    or die "Could not create unix socket: $!";
-
     if(defined $self->{_options}->{host} and defined $self->{_options}->{port}) {
         $self->{_inet_socket} = IO::Socket::INET->new(
             PeerAddr => $self->{_options}->{host},
@@ -52,6 +46,13 @@ sub set_sockets {
             Type     => SOCK_STREAM,
         )
         or warn "Could not connect to $self->{_options}->{host}:$self->{_options}->{port}; $!\n";
+    }
+    else {
+        $self->{_unix_socket} = IO::Socket::UNIX->new(
+            Peer => $self->{_options}->{socket},
+            Type => SOCK_STREAM
+        )
+        or die "Could not create unix socket: $!";
     }
 }
 
@@ -90,8 +91,8 @@ sub get_response {
     die 'could not recieve message from server'
         if not defined $response;
 
-    $response->{_body} = 'client packet authentication failure'
-        if $response->{_command} eq Notify::Message->CMD_AUTH_FAILURE;
+    $response->body('client packet authentication failure')
+        if $response->type eq Notify::Message->CMD_AUTH_FAILURE;
 
     return $response;
 }
@@ -100,8 +101,9 @@ sub close_connection {
     my $self = shift;
 
     $self->{_inet_socket}->close
-        if(defined $self->{_inet_socket});
-    $self->{_unix_socket}->close;
+        if defined $self->{_inet_socket};
+    $self->{_unix_socket}->close
+        if defined $self->{_unix_socket};
 }
 
 1;

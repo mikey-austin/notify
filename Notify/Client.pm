@@ -22,8 +22,6 @@ package Notify::Client;
 use strict;
 use warnings;
 
-use Data::Dumper;
-
 use Notify::Config;
 use Notify::Message;
 use Notify::Logger;
@@ -163,7 +161,6 @@ sub get_status {
 
 #
 # List all the queued notifications.
-# Uses dummy providers.
 #
 sub list_notifications {
     my $self = shift;

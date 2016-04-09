@@ -21,11 +21,13 @@ package Notify::Sender;
 
 use strict;
 use warnings;
+
 use Notify::Config;
 use Notify::Message;
 use IO::Socket::UNIX;
 use Notify::Logger;
 use Notify::StorageFactory;
+use Notify::CommandFactory::Sender;
 
 sub new {
     my $class = shift;
@@ -34,8 +36,11 @@ sub new {
         _to_send => 0,
         _storage => Notify::StorageFactory->create('sender') || undef,
     };
-
     bless $self, $class;
+
+    $self->{_cmd_factory} = Notify::CommandFactory::Sender->new($self);
+
+    return $self;
 }
 
 sub start {
@@ -65,7 +70,7 @@ sub start {
     #
     $SIG{'USR1'} = sub {
         $self->{_queue} = [];
-        $self->_sync;
+        $self->sync;
     };
 
     do {
@@ -80,17 +85,17 @@ sub start {
         print $parent $message->encode;
 
         # Wait for response.
-        if(my $message = Notify::Message->from_handle($parent)) {
-            if($message->command eq $message->CMD_DISPATCH) {
-                foreach my $n (@{$message->body}) {
-                    push @{$self->{_queue}}, $n;
-                }
-            }
+        if($message = Notify::Message->from_handle($parent, $self->{_cmd_factory})
+           and defined $message->command)
+        {
+            $message->command->execute;
+        }
+        else {
+            Notify::Logger->err('Sender could not understand message');
         }
 
         # Close connection to parent.
         $parent->close;
-        $self->_sync;
 
         if(@{$self->{_queue}} > 0) {
             #
@@ -110,7 +115,7 @@ sub start {
             }
 
             $self->{_queue} = \@failed;
-            $self->_sync;
+            $self->sync;
         }
 
         #
@@ -122,7 +127,11 @@ sub start {
     } while(1); # Never return.
 }
 
-sub _sync {
+sub queue {
+    shift->{_queue};
+}
+
+sub sync {
     my $self = shift;
     return if not defined $self->{_storage};
 

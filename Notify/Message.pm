@@ -21,6 +21,7 @@ package Notify::Message;
 
 use strict;
 use warnings;
+
 use IO::File;
 use JSON;
 use Digest::HMAC;
@@ -47,36 +48,30 @@ use constant {
 my $message_key = undef;
 
 sub new {
-    my ($class, $command) = @_;
+    my ($class, $type, $factory) = @_;
     my $self = {
-        _command => $command,
+        _type    => $type,
+        _command => $factory ? $factory->create($type) : undef,
         _error   => 0,
         _body    => undef,
     };
-
     bless $self, $class;
-}
 
-sub command {
-    my ($self, $command) = @_;
+    if(defined $self->{_command}) {
+        $self->{_command}->message($self);
+    }
 
-    if(defined $command) {
-        $self->{_command} = $command;
+    # Set some getter/setters directly in symbol table.
+    foreach my $var (qw/type command error body/) {
+        no strict 'refs';
+        *{"$class::$var"} = sub {
+            my ($self, $arg) = @_;
+            $self->{"_$var"} = $arg if defined $arg;
+            return $self->{"_$var"};
+        } if not defined *{"$class::$var"}{CODE};
     }
-    else {
-        return $self->{_command};
-    }
-}
 
-sub body {
-    my ($self, $body) = @_;
-
-    if(defined $body) {
-        $self->{_body} = $body;
-    }
-    else {
-        return $self->{_body};
-    }
+    return $self;
 }
 
 sub get_key {
@@ -84,7 +79,8 @@ sub get_key {
 
     if(not defined $message_key) {
         my $key_data = undef;
-        my $key_handle = IO::File->new(Notify::Config->get('key_path'), 'r');
+        my $key_handle = IO::File->new(
+            Notify::Config->get('key_path'), 'r');
 
         if(defined $key_handle) {
             $key_data = <$key_handle>;
@@ -116,14 +112,16 @@ sub encode {
 }
 
 sub from_handle {
-    my ($class, $handle) = @_;
+    my ($class, $handle, $factory) = @_;
     my $message = undef;
 
     if(defined (my $buf = <$handle>)) {
         chomp $buf;
         eval {
-            $message = $class->parse($buf);
+            $message = $class->parse($buf, $factory);
         };
+
+        Notify::Logger->err($@) if $@;
     }
 
     return $message;
@@ -134,7 +132,7 @@ sub from_handle {
 # return a Message object.
 #
 sub parse {
-    my ($class, $encoded) = @_;
+    my ($class, $encoded, $factory) = @_;
 
     # Remove carriage returns.
     $encoded =~ s/\r//g;
@@ -142,19 +140,19 @@ sub parse {
 
     my $digest = $class->generate_hmac($json);
     if(not defined $received_hmac or $digest ne $received_hmac) {
-        return $class->new(CMD_AUTH_FAILURE);
+        return $class->new($class->CMD_AUTH_FAILURE, $factory);
     }
 
     my $decoded = JSON->new->decode($json);
+    my $message = $class->new($decoded->{command}, $factory);
+    $message->error($decoded->{error});
 
-    my $message = $class->new($decoded->{command});
-    $message->{_error} = $decoded->{error};
-
-    if($message->command eq $class->CMD_NOTIF) {
+    if($message->{_type} eq $class->CMD_NOTIF) {
         $message->{_body} =
-            Notify::Notification->create_from_decoded_json($decoded->{body});
+            Notify::Notification->create_from_decoded_json(
+                $decoded->{body});
     }
-    elsif($message->command eq $class->CMD_DISPATCH) {
+    elsif($message->{_type} eq $class->CMD_DISPATCH) {
         $message->{_body} = [];
         foreach my $decoded_notification (@{$decoded->{body}}) {
             push @{$message->{_body}},
@@ -163,7 +161,7 @@ sub parse {
         }
     }
     else {
-        $message->{_body} = $decoded->{body};
+        $message->body($decoded->{body});
     }
 
     return $message;
@@ -172,9 +170,9 @@ sub parse {
 sub TO_JSON {
     my $self = shift;
     my $output = {
-        command => $self->{_command},
-        error   => $self->{_error},
-        body    => $self->{_body},
+        command => $self->type,
+        error   => $self->error,
+        body    => $self->body,
     };
 
     return $output;

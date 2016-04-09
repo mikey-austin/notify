@@ -29,7 +29,7 @@ use Notify::Sender;
 use Notify::Socket;
 use Notify::Suspend;
 use Notify::ProviderFactory;
-use Notify::StorageFactory;
+use Notify::CommandFactory::Server;
 use Notify::Socket::Server;
 use IO::Select;
 use IO::Handle;
@@ -69,10 +69,13 @@ sub new {
         for qw(host port socket pidfile);
 
     # Set remaining options.
-    $self->{_options}->{$_} = $options->{$_} for qw|daemonize user group config|;
+    $self->{_options}->{$_} = $options->{$_}
+        for qw|daemonize user group config|;
 
     my $storage = Notify::StorageFactory->create;
     $self->{_queue} = Notify::Queue->new($storage);
+
+    $self->{_cmd_factory} = Notify::CommandFactory::Server->new($self);
 
     bless $self, $class;
 }
@@ -111,7 +114,6 @@ sub start {
     for(;;) {
         while(my @ready = $select->can_read) {
             foreach my $handle (@ready) {
-                # TODO Fix indentation.
                 my $listen = $sockets->get_pending_handle($handle);
                 if(defined $listen) {
                     # There is a connection waiting to be accepted.
@@ -121,103 +123,21 @@ sub start {
                     $select->add($new);
                 }
                 else {
-                    #
-                    # This is a connection ready for reading.
-                    #
-                    my $response;
-                    if(my $message = Notify::Message->from_handle($handle)) {
-                        if($message->command eq $message->CMD_NOTIF) {
-                            $self->{_queue}->enqueue($message->body);
-
-                            $response = $self->new_message(
-                                $message->CMD_RESPONSE,
-                                'OK: ' . $self->{_queue}->get_size . ' queued');
-
-                            Notify::Logger->write('Queued notification');
-                        }
-                        elsif($message->command eq $message->CMD_READY) {
-                            $response = $self->new_message(
-                                $message->CMD_DISPATCH);
-                        }
-                        elsif($message->command eq $message->CMD_EMPTY_QUEUE) {
-                            Notify::Logger->write('Queue Emptied');
-                            $self->{_queue}->empty;
-
-                            # Signal the sender to clear queued messages.
-                            kill('USR1', $self->{_sender_pid})
-                                if defined $self->{_sender_pid};
-
-                            $response = $self->new_message(
-                                $message->CMD_RESPONSE, 'OK: queue emptied');
-                        }
-                        elsif($message->command eq $message->CMD_ENABLE_NOTIF) {
-                            Notify::Logger->write('Notifications Enabled');
-                            Notify::Config->set('enabled', 1);
-
-                            $response = $self->new_message(
-                                $message->CMD_RESPONSE,
-                                'OK: notifications enabled');
-
-                            $self->stop_suspend;
-                        }
-                        elsif($message->command eq $message->CMD_SUSPEND) {
-                            if(defined $self->{_suspend_pid}) {
-                                $response = $self->new_message($message->CMD_RESPONSE,
-                                                               'ERR: Already suspended');
-                                $response->{_error} = 1;
-                            }
-                            elsif($message->body =~ /^[1-9](\d{1,2})?$/) {
-                                Notify::Logger->write('Notifications Suspended');
-                                Notify::Config->set('enabled', 0);
-                                $response = $self->new_message(
-                                    $message->CMD_RESPONSE,
-                                    'OK: notifications suspended for ' . $message->body . ' minutes');
-
-                                # Start the suspend process.
-                                $self->start_suspend($message->body);
-                            }
-                            else {
-                                $response = $self->new_message($message->CMD_RESPONSE,
-                                                               'ERR: Invalid suspend time');
-                                $response->{_error} = 1;
-                            }
-                        }
-                        elsif($message->command eq $message->CMD_DISABLE_NOTIF) {
-                            Notify::Logger->write('Notifications Disabled');
-                            Notify::Config->set('enabled', 0);
-
-                            $response = $self->new_message(
-                                $message->CMD_RESPONSE,
-                                'OK: notifications disabled');
-                        }
-                        elsif($message->command eq $message->CMD_STATUS) {
-                            $response = $self->new_message(
-                                $message->CMD_RESPONSE, $self->server_status);
-                        }
-                        elsif($message->command eq $message->CMD_LIST) {
-                            $response = $self->new_message(
-                                $message->CMD_RESPONSE, $self->list_queued);
-                        }
-                        elsif($message->command eq $message->CMD_REMOVE) {
-                            $response = $self->new_message(
-                                $message->CMD_RESPONSE, $self->remove($message->body));
-                        }
-                        elsif($message->command eq $message->CMD_AUTH_FAILURE) {
-                            Notify::Logger->err('Could not authenticate received message');
-                            $response = $self->new_message(
-                                $message->CMD_RESPONSE, 'ERR: failed server authentication');
-                            $response->{_error} = 1;
-                        }
-                        else {
-                            Notify::Logger->err('Could not understand message');
-                            $response = $self->new_message(
-                                $message->CMD_RESPONSE, 'ERR: invalid message');
-                            $response->{_error} = 1;
-                        }
-
-                        print $handle $response->encode;
+                    my ($response, $message);
+                    if(($message = Notify::Message->from_handle($handle, $self->{_cmd_factory}))
+                       and defined $message->command)
+                    {
+                        $response = $message->command->execute;
+                    }
+                    else {
+                        Notify::Logger->err('Could not understand message');
+                        $response = $self->new_message(
+                            Notify::Message->CMD_RESPONSE,
+                            'ERR: invalid message');
+                        $response->error(1);
                     }
 
+                    print $handle $response->encode;
                     $select->remove($handle);
                     $handle->close;
                 }
@@ -229,19 +149,11 @@ sub start {
 }
 
 sub new_message {
-    my ($self, $command, $response) = @_;
-    my $message = Notify::Message->new($command);
+    my ($self, $cmd_type, $response) = @_;
 
-    if($command eq $message->CMD_DISPATCH) {
-        #
-        # Dispatch notifications to sender if notifications
-        # are enabled.
-        #
-        $message->body((Notify::Config->get('enabled') == 1 ? $self->{_queue}->dequeue : []));
-    }
-    elsif($command eq $message->CMD_RESPONSE) {
-        $message->body($response);
-    }
+    my $message = Notify::Message->new(
+        $cmd_type, $self->{_cmd_factory});
+    $message->body($response);
 
     return $message;
 }
@@ -273,25 +185,12 @@ sub server_status {
     return $status;
 }
 
-sub list_queued {
-    my $self = shift;
-    my @messages;
-
-    $self->{_queue}->walk_queue(sub {
-        push @messages, shift;
-    });
-
-    return \@messages;
+sub is_suspended {
+    defined shift->{_suspend_pid};
 }
 
-sub remove {
-    my ($self, $notification) = @_;
-
-    my $processed = $self->{_queue}->delete(sub {
-        shift->matches($notification);
-    });
-
-    return "OK: $processed notifications deleted";
+sub queue {
+    shift->{_queue};
 }
 
 sub daemonize {
@@ -392,15 +291,16 @@ sub start_suspend {
     }
 }
 
-sub stop_sender {
+sub signal_sender {
     my ($self, $sig) = @_;
 
     # Default to SIGTERM.
     $sig ||= 'TERM';
 
     Notify::Logger->write(
-        'Stopping sender process'
-        . (defined $self->{_sender_pid} ? ' ' . $self->{_sender_pid} . '...' : ''));
+        'Sending sender process'
+        . (defined $self->{_sender_pid} ? " $self->{_sender_pid}" : '')
+        . " a $sig");
 
     kill($sig, $self->{_sender_pid}) if $self->{_sender_pid};
 }
@@ -436,7 +336,7 @@ sub register_signals {
         Notify::Config->set('pidfile', $self->{_options}->{pidfile});
 
         # The sender will automatically restart.
-        $self->stop_sender('HUP');
+        $self->signal_sender('HUP');
     };
 
     #
@@ -480,28 +380,11 @@ sub shutdown {
     else {
         Notify::Logger->write("Shutting down notify $$...");
     }
-    $self->stop_sender;
+    $self->signal_sender;
     $self->stop_suspend;
 
     unlink(Notify::Config->get('socket')) if -e Notify::Config->get('socket');
     unlink(Notify::Config->get('pidfile')) if -e Notify::Config->get('pidfile');
-}
-
-sub log_message_protocol {
-    my $handle = shift;
-
-    my $message_origin = "Unknown";
-
-    if($handle->protocol == 6) {
-        $message_origin = "TCP";
-    }
-    elsif($handle->protocol == 0) {
-        $message_origin = "UNIX";
-    }
-
-    Notify::Logger->write(
-        'Message received from: ' . $message_origin
-    );
 }
 
 1;
