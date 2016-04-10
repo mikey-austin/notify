@@ -1,7 +1,7 @@
 Source: notify
 Section: admin
 Priority: optional
-Maintainer: Mikey Austin <mikey@ayuda.com.au>
+Maintainer: Mikey Austin <mikey@jackiemclean.net>
 DM-Upload-Allowed: yes
 Build-Depends: debhelper (>= 7.0.8)
 Standards-Version: 3.9.2
