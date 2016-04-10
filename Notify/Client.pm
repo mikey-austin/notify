@@ -30,10 +30,8 @@ use Notify::Socket::Client;
 
 use constant {
     DEFAULTS => [
-        'notify.conf',
-        'notify.yaml',
-        "$ENV{'HOME'}/.notify.conf",
         '/etc/notify/notify.conf',
+        "$ENV{'HOME'}/.notify.conf",
     ]
 };
 

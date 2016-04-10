@@ -19,7 +19,10 @@ Have you ever wanted to:
   - obtaining the notification server status
 
 If so, notify aims to provide all of the above. It consists of a server part
-and a client part, with communication occuring over a UNIX-domain socket.
+and a client part, with communication occuring over a UNIX-domain socket and
+optionally TCP. All messages to and from the server are HMAC-authenticated.
+
+Messages can also optionally be persisted to survive server restarts.
 
 Overview
 --------
@@ -39,7 +42,7 @@ essentially rate-limiting the sending.
 
 The original motivation for this was driven by our two nagios boxes each dumping 30 SMSes
 to 3 sysadmins in one swoop (worst case of course), with no quick way to clear/stop dispatched
-messages. This situation starts to cost $$, and really freaks you out at 3am.
+messages.
 
 Usage
 -----
@@ -50,17 +53,23 @@ The server can be started as below (when not run from an init script):
 
 and similarly for the client:
 
-    $ notifyctl enable --socket /tmp/test.sock
+    $ notifyctl enable --host localhost --port 9999
     OK: notifications enabled
 
     $ notifyctl queue --socket /tmp/test.sock --recipient 61411221234 --subject "alert!" --body "alert alert"
     OK: 1 queued
 
+Both the server and client search for default configuration in multiple locations, allowing for a ~/.notify.conf during development, without having to specify the options every time. Currently, the following locations are searched in order, with each one found overriding common options in previous configs:
+
+- /etc/notify/notify.conf
+- ~/.notify.conf
+
 Implementation Details
 ----------------------
 
 Communication over the socket happens via JSON-encoded "messages", encapsulated in the Notify::Message
-class.
+class. The socket must always be configured as it is used by the sender process to communicate with the
+server.
 
 The configuration file syntax is in YAML, see the example configuration file for details.
 
@@ -69,7 +78,7 @@ Dependencies
 
 To run notify you will need to install the following CPAN modules:
 
-- YAML::XS
+- YAML
 - JSON
 - Module::Load
 - Digest::HMAC
@@ -77,7 +86,7 @@ To run notify you will need to install the following CPAN modules:
 SMS Gateway Providers
 ---------------------
 
-Currently there are two reference provider implementations for email and SMS dispatch. There are currently SMS drivers for the following services:
+There are currently SMS drivers for the following services:
 
 - Burst SMS
 - Esendex
@@ -85,7 +94,7 @@ Currently there are two reference provider implementations for email and SMS dis
 - SMS Global
 - Twilio
 
-To implement another SMS provider, you can:
+It is pretty straightforward To implement another SMS provider, you can:
 
 1.  Implement a package extending the Notify::Provider class, in the Notify::SMS namespace (eg Notify::SMS::NewProvider)
 2.  Implement the *send* method according to the provider's specifics

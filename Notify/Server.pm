@@ -39,8 +39,7 @@ use POSIX ();
 use constant {
     DEFAULTS => [
         '/etc/notify/notify.conf',
-        '/etc/notify/notify.yaml',
-        $ENV{'HOME'} . '/.notify.conf',
+        "$ENV{'HOME'}/.notify.conf",
     ]
 };
 
