@@ -41,6 +41,7 @@ sub new {
 #
 sub add_handles {
     my ($self, $select) = @_;
+
     $select->add($self->{_unix_socket}) if defined $self->{_unix_socket};
     $select->add($self->{_inet_socket}) if defined $self->{_inet_socket};
 }
@@ -52,7 +53,7 @@ sub get_pending_handle {
     my ($self, $handle) = @_;
     my $match = undef;
 
-    if(defined $self->{_inet_socket}) {
+    if(defined $self->{_unix_socket}) {
         $match = $self->{_unix_socket}
             if $handle == $self->{_unix_socket};
     }
