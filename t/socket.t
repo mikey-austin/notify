@@ -17,7 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
-use Test::Simple tests => 36;
+use Test::More tests => 36;
 use Notify::Socket::Client;
 use Notify::Socket::Server;
 use Notify::Socket;
@@ -39,6 +39,9 @@ $options = {
 # Initialise the config.
 Notify::Config->reload('t/config/config1.yaml');
 
+# Remove the test socket if it exists.
+unlink $options->{socket};
+
 #
 # Server socket testing:
 #
@@ -55,7 +58,7 @@ ok(defined $server_socket->{_inet_socket});
 $select = IO::Select->new();
 ok($server_socket->add_handles($select));
 $server_socket->add_handles($select);
-ok($select->count() == 2);
+ok($select->count() eq 2);
 
 ok($server_socket->get_pending_handle($server_socket->{_unix_socket}));
 ok($server_socket->get_pending_handle($server_socket->{_inet_socket}));
@@ -68,15 +71,14 @@ $client_socket = Notify::Socket::Client->new($options);
 ok($client_socket->{_options}->{socket} eq '/tmp/test.sock');
 ok($client_socket->{_options}->{host} eq 'localhost');
 ok($client_socket->{_options}->{port} eq 9000);
-ok(defined $client_socket->{_unix_socket});
+ok(not defined $client_socket->{_unix_socket});
 ok(defined $client_socket->{_inet_socket});
 
 $select = IO::Select->new();
 ok($client_socket->add_handles($select));
 $client_socket->add_handles($select);
-ok($select->count() == 2);
+ok($select->count() eq 1);
 
-ok($client_socket->get_pending_handle($client_socket->{_unix_socket}));
 ok($client_socket->get_pending_handle($client_socket->{_inet_socket}));
 ok(not defined $client_socket->get_pending_handle(1234));
 
@@ -121,7 +123,7 @@ ok($server_socket->delete_socket);
 ok($client_socket->close_connection);
 ok(not -e '/tmp/test.sock');
 
-# Now to test the UNIX socket - when no INEt socket options
+# Now to test the UNIX socket - when no INET socket options
 # are specified.
 $options = {
     socket => "/tmp/test.sock",
