@@ -17,13 +17,12 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
-use Test::More tests => 36;
+use Test::Simple tests => 36;
 use Notify::Socket::Client;
 use Notify::Socket::Server;
 use Notify::Socket;
 use Notify::Message;
 use IO::Select;
-use Data::Dumper;
 
 $options = {
     socket => "/tmp/test.sock",
